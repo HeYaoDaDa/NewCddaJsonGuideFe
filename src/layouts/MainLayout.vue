@@ -16,11 +16,7 @@
     </q-header>
 
     <q-drawer v-model="leftDrawerOpen" side="left" show-if-above bordered>
-      <q-list>
-        <q-item-label header> Essential Links </q-item-label>
-
-        <language-select />
-      </q-list>
+      <user-config />
     </q-drawer>
 
     <q-drawer side="right" bordered show-if-above>
@@ -35,7 +31,7 @@
 
 <script lang="ts">
 import { ref } from 'vue';
-import LanguageSelect from 'src/components/leftDrawer/LanguageSelect.vue';
+import UserConfig from 'src/components/leftDrawer/UserConfig.vue';
 export default {
   name: 'MainLayout',
   inheritAttrs: false,
