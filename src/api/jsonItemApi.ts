@@ -1,5 +1,5 @@
 import { api } from 'boot/axios';
-import { apiVersion, host } from 'src/constant/apiConstant';
+import { API_VERSION, HOST } from 'src/constant/apiConstant';
 import { JsonItem, SearchResult } from 'src/type';
 
 export async function getJsonItemsByItemType(
@@ -10,7 +10,7 @@ export async function getJsonItemsByItemType(
   mods?: string[]
 ): Promise<JsonItem[]> {
   const response = await api.get(
-    `${host}/${apiVersion}/jsonItems/${itemType}`,
+    `${HOST}/${API_VERSION}/jsonItems/${itemType}`,
     {
       params: {
         pipeline: pipeline ? JSON.stringify(pipeline) : '',
@@ -31,7 +31,7 @@ export async function getJsonItemListByJsonId(
   mods?: string[]
 ): Promise<JsonItem[]> {
   const response = await api.get(
-    `${host}/${apiVersion}/jsonItems/${itemType}/${jsonId}`,
+    `${HOST}/${API_VERSION}/jsonItems/${itemType}/${jsonId}`,
     {
       params: { language, version, mods },
     }
@@ -46,7 +46,7 @@ export async function searchJsonItem(
   version?: string,
   mods?: string[]
 ): Promise<SearchResult[]> {
-  const response = await api.get(`${host}/${apiVersion}/jsonItems/search`, {
+  const response = await api.get(`${HOST}/${API_VERSION}/jsonItems/search`, {
     params: { name, category, language, version, mods },
   });
   return response.data;

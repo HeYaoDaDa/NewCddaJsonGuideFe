@@ -1,2 +1,2 @@
-export const host = 'http://localhost:8081';
-export const apiVersion = 'v0.1';
+export const HOST = 'http://localhost:8081';
+export const API_VERSION = 'v0.1';

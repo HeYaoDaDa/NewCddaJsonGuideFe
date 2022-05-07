@@ -19,7 +19,7 @@
       <q-list>
         <q-item-label header> Essential Links </q-item-label>
 
-        <p>test</p>
+        <language-select />
       </q-list>
     </q-drawer>
 
@@ -35,6 +35,7 @@
 
 <script lang="ts">
 import { ref } from 'vue';
+import LanguageSelect from 'src/components/leftDrawer/LanguageSelect.vue';
 export default {
   name: 'MainLayout',
   inheritAttrs: false,

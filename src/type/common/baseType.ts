@@ -24,3 +24,8 @@ export interface JsonItem {
   content: object;
   originalContent: object;
 }
+
+export interface SelectOption {
+  label: string;
+  value: string;
+}
