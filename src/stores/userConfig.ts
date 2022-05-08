@@ -42,10 +42,10 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
     },
     updateModsInfo(newMods: Mod[]) {
       if (arrayIsNotEmpty(newMods)) {
-        this.mods.forEach((mod, i, a) => {
+        this.mods.forEach((mod) => {
           const updateMod = newMods.find((v) => mod.data.id === v.data.id);
           if (updateMod) {
-            a[i] = updateMod;
+            mod.data.name = updateMod.data.name;
           }
         });
       }

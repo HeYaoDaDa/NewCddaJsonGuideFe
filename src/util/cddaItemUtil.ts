@@ -18,22 +18,16 @@ export async function getCddaItemByTypeAndId(
       resolve(cddaData.data.get(jsonType)?.get(jsonId) ?? []);
     });
   } else {
-    return getJsonItemListByJsonId(jsonType, jsonId)
-      .then((jsonItems) => {
-        if (arrayIsEmpty(jsonItems)) {
-          console.debug(
-            `getJsonItemListByJsonId result is empty, Type is ${jsonType}, Id is ${jsonId}`
-          );
-          return [];
-        } else {
-          cddaData.addJsonItem(jsonItems);
-          return jsonItems;
-        }
-      })
-      .then((jsonItems) =>
-        jsonItems.map((jsonItem) => {
-          return { jsonItem };
-        })
+    const jsonItems = await getJsonItemListByJsonId(jsonType, jsonId);
+    if (arrayIsEmpty(jsonItems)) {
+      console.debug(
+        `getJsonItemListByJsonId result is empty, Type is ${jsonType}, Id is ${jsonId}`
       );
+      return [];
+    }
+    cddaData.addJsonItem(jsonItems);
+    return jsonItems.map((jsonItem) => {
+      return { jsonItem };
+    });
   }
 }
