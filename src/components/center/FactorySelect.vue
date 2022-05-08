@@ -19,9 +19,11 @@ import MegerVNode from 'src/components/base/MegerVNode.vue';
 const props = defineProps<{
   cddaItem: CddaItem;
 }>();
-const loader = loaderFactorys
-  .find((loaderFactory) => loaderFactory.validate(props.cddaItem))
-  ?.getLoader();
+const loader =
+  props.cddaItem.data ??
+  loaderFactorys
+    .find((loaderFactory) => loaderFactory.validate(props.cddaItem))
+    ?.getLoader();
 loader?.load(props.cddaItem.jsonItem);
 const loaderView = h(MegerVNode, null, () => loader?.toView());
 </script>

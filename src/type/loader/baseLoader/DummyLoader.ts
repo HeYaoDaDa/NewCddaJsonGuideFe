@@ -7,6 +7,7 @@ export class Dummy extends SuperLoader<object> {
   jsonItem?: JsonItem;
   async load(value: JsonItem): Promise<void> {
     if (this.isLoad || !this.validateValue(value)) return;
+    console.debug('start load %s', this.constructor.name);
     this.isLoad = true;
     this.jsonItem = value;
   }

@@ -22,6 +22,7 @@ export class SubBodyPart extends SuperLoader<SubBodyPartInterface> {
   jsonItem?: JsonItem;
   async load(value: JsonItem): Promise<void> {
     if (this.isLoad || !this.validateValue(value)) return;
+    console.debug('start load %s', this.constructor.name);
     this.isLoad = true;
     const data = this.data;
     const jsonObject = value.content as Record<string, unknown>;
