@@ -8,12 +8,7 @@ export const useCddaData = defineStore(KEY_CDDA_DATA, {
   state: () => {
     return { data: new Map<string, Map<string, CddaItem[]>>() };
   },
-  getters: {
-    clear() {
-      console.debug('clear old cdda data');
-      this.data.clear();
-    },
-  },
+  getters: {},
   actions: {
     addCddaItem(cddaItems: CddaItem[] | CddaItem) {
       toArray(cddaItems).forEach((cddaItem) => {
@@ -39,6 +34,10 @@ export const useCddaData = defineStore(KEY_CDDA_DATA, {
           return { jsonItem };
         })
       );
+    },
+    clear() {
+      console.debug('clear old cdda data');
+      this.data.clear();
     },
   },
 });

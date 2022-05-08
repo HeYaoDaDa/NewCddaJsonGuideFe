@@ -10,6 +10,7 @@
 <script lang="ts">
 import { Loading } from 'quasar';
 import DefaultCddaItemPage from 'src/components/loaderView/page/DefaultCddaItemPage.vue';
+import { LOG_NO_CHANGE_COMPUTED } from 'src/constant/loggerConstant';
 import { useUserConfigStore } from 'src/stores/userConfig';
 import { CddaItem } from 'src/type/common/CddaItem';
 import { getCddaItemByTypeAndId } from 'src/util/cddaItemUtil';
@@ -58,7 +59,7 @@ watch(
       userConfig.version._id,
       userConfig.mods.map((mod) => mod.data.id),
     ],
-    set: () => console.error('Cannot modify!!!'),
+    set: () => console.error(LOG_NO_CHANGE_COMPUTED),
   }),
   () => {
     updateCddaItem(

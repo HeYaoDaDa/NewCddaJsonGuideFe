@@ -24,6 +24,7 @@ import { computed, reactive, watch } from 'vue';
 import { useUserConfigStore } from 'src/stores/userConfig';
 import { getModsOptions } from 'src/api';
 import { Mod } from 'src/type/loader/baseLoader/ModLoader';
+import { LOG_NO_CHANGE_COMPUTED } from 'src/constant/loggerConstant';
 
 const userConfig = useUserConfigStore();
 const options = reactive([] as Array<Mod>);
@@ -46,7 +47,7 @@ initModsSelect();
 watch(
   computed({
     get: () => [userConfig.language, userConfig.version],
-    set: () => console.error('Cannot modify!!!'),
+    set: () => console.error(LOG_NO_CHANGE_COMPUTED),
   }),
   () => initModsSelect()
 );

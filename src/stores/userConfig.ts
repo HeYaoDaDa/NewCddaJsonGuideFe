@@ -33,7 +33,7 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
 });
 
 useUserConfigStore().$subscribe((mutation, state) => {
-  console.debug('User Config Change!');
+  console.debug('Save new user config %o', state);
   localStorage.setItem(KEY_USER_CONFIG, JSON.stringify(state));
 });
 
