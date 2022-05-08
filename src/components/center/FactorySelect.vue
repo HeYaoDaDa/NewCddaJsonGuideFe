@@ -19,6 +19,7 @@ import MegerVNode from 'src/components/base/MegerVNode.vue';
 const props = defineProps<{
   cddaItem: CddaItem;
 }>();
+console.log(props.cddaItem);
 const loader =
   props.cddaItem.data ??
   loaderFactorys

@@ -9,8 +9,11 @@ export abstract class SuperFactory {
 
   getLoader(): SuperLoader<object> | undefined {
     const userConfig = useUserConfigStore();
-    return this.loaders.find((loader) =>
+    const loader = this.loaders.find((loader) =>
       loader.validateVersion(userConfig.version)
     );
+    if (loader) {
+      return new (Object.getPrototypeOf(loader).constructor)();
+    }
   }
 }
