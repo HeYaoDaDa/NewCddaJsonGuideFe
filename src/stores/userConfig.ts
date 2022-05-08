@@ -2,7 +2,8 @@ import { defineStore } from 'pinia';
 import { LANGUAGE_OPTIONS } from 'src/constant';
 import { KEY_LATEST_VERSION_ID } from 'src/constant/dataConstant';
 import { KEY_USER_CONFIG } from 'src/constant/storageConstant';
-import { Mod, SelectOption, Version } from 'src/type';
+import { SelectOption, Version } from 'src/type';
+import { Mod } from 'src/type/loader/baseLoader/ModLoader';
 import { arrayIsNotEmpty } from 'src/util/commonUtil';
 
 export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
@@ -41,12 +42,10 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
     },
     updateModsInfo(newMods: Mod[]) {
       if (arrayIsNotEmpty(newMods)) {
-        this.mods.forEach((mod) => {
-          const updateMod = newMods.find((v) => mod.id === v.id);
+        this.mods.forEach((mod, i, a) => {
+          const updateMod = newMods.find((v) => mod.data.id === v.data.id);
           if (updateMod) {
-            mod.category = updateMod.category;
-            mod.description = updateMod.description;
-            mod.name = updateMod.name;
+            a[i] = updateMod;
           }
         });
       }
@@ -64,6 +63,9 @@ function initUserConfigState(): UserConfigInterface {
   if (userConfig) {
     return JSON.parse(userConfig);
   } else {
+    const defaultMod = new Mod();
+    defaultMod.data.id = 'dda';
+    defaultMod.data.name = 'dda';
     return {
       language: LANGUAGE_OPTIONS[0],
       version: {
@@ -78,7 +80,7 @@ function initUserConfigState(): UserConfigInterface {
         tagMessage: '',
         tagDate: new Date(),
       },
-      mods: [{ id: 'dda', name: 'dda', description: 'dda', category: '' }],
+      mods: [defaultMod],
     };
   }
 }

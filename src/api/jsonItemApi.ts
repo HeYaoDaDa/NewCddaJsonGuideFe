@@ -13,7 +13,7 @@ export async function getJsonItemsByItemType(
   const userConfig = useUserConfigStore();
   language = language ?? userConfig.language.value;
   version = version ?? userConfig.version._id;
-  mods = mods ?? userConfig.mods.map((mod) => mod.id);
+  mods = mods ?? userConfig.mods.map((mod) => mod.data.id);
   const response = await api.get(
     `${HOST}/${API_VERSION}/jsonItems/${itemType}`,
     {
@@ -38,7 +38,7 @@ export async function getJsonItemListByJsonId(
   const userConfig = useUserConfigStore();
   language = language ?? userConfig.language.value;
   version = version ?? userConfig.version._id;
-  mods = mods ?? userConfig.mods.map((mod) => mod.id);
+  mods = mods ?? userConfig.mods.map((mod) => mod.data.id);
   const response = await api.get(
     `${HOST}/${API_VERSION}/jsonItems/${itemType}/${jsonId}`,
     {
@@ -58,7 +58,7 @@ export async function searchJsonItem(
   const userConfig = useUserConfigStore();
   language = language ?? userConfig.language.value;
   version = version ?? userConfig.version._id;
-  mods = mods ?? userConfig.mods.map((mod) => mod.id);
+  mods = mods ?? userConfig.mods.map((mod) => mod.data.id);
   const response = await api.get(`${HOST}/${API_VERSION}/jsonItems/search`, {
     params: { name, category, language, version, mods },
   });

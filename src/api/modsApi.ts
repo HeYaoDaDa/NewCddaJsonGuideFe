@@ -1,4 +1,5 @@
 import { getJsonItemsByItemType } from 'src/api/jsonItemApi';
+import { Mod } from 'src/type/loader/baseLoader/ModLoader';
 
 export async function getModsOptions() {
   const response = await getJsonItemsByItemType(
@@ -8,17 +9,11 @@ export async function getModsOptions() {
     undefined,
     ['all']
   );
-  return response.map((mod) => {
-    const modJson = mod.content as {
-      name: string;
-      description: string;
-      category: string;
-    };
-    return {
-      id: mod.jsonId,
-      name: modJson.name,
-      description: modJson.description,
-      category: modJson.category,
-    };
-  });
+  return Promise.all(
+    response.map(async (jsonItem) => {
+      const mod = new Mod();
+      await mod.load(jsonItem);
+      return mod;
+    })
+  );
 }

@@ -3,7 +3,7 @@
     filled
     v-model="selectedMods"
     :options="options"
-    option-label="name"
+    :option-label="(option) => option.data.name"
     :label="$t('label.mods')"
     multiple
     use-chips
@@ -23,7 +23,7 @@ export default {
 import { computed, reactive, watch } from 'vue';
 import { useUserConfigStore } from 'src/stores/userConfig';
 import { getModsOptions } from 'src/api';
-import { Mod } from 'src/type';
+import { Mod } from 'src/type/loader/baseLoader/ModLoader';
 
 const userConfig = useUserConfigStore();
 const options = reactive([] as Array<Mod>);
