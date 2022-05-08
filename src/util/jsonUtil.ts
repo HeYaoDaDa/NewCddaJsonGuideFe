@@ -22,6 +22,20 @@ export async function getOptionalAsyncId(
   }
 }
 
+export async function getAsyncId(
+  jsonObject: Record<string, unknown>,
+  key: string,
+  type: string,
+  asyncUpdateName?: (asyncId: AsyncId) => Promise<void>,
+  def?: AsyncId
+): Promise<AsyncId> {
+  return (
+    (await getOptionalAsyncId(jsonObject, key, type, asyncUpdateName)) ??
+    def ??
+    new AsyncId()
+  );
+}
+
 export function getOptionalWeight(
   jsonObject: Record<string, unknown>,
   key: string

@@ -1,14 +1,25 @@
 <template>
-  <template v-for="(contentItem, index) in contents" :key="contentItem">
+  <template
+    v-for="(contentItem, index) in Array.isArray(props.content)
+      ? props.content
+      : [props.content]"
+    :key="contentItem"
+  >
     <my-text-part
       :content="contentItem"
-      :route="routes[index]"
+      :route="(Array.isArray(props.route) ? props.route : [props.route])[index]"
       :p="props.p"
       :li="props.li"
     />
 
     <my-text-part
-      v-if="props.separator && index < contents.length - 1"
+      v-if="
+        props.separator &&
+        index <
+          (Array.isArray(props.content) ? props.content : [props.content])
+            .length -
+            1
+      "
       :content="props.separator"
     />
   </template>
@@ -33,6 +44,4 @@ const props = defineProps<{
   p?: boolean;
   li?: boolean;
 }>();
-const contents = Array.isArray(props.content) ? props.content : [props.content];
-const routes = Array.isArray(props.route) ? props.route : [props.route];
 </script>

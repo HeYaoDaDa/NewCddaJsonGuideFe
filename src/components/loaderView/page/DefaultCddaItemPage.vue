@@ -1,5 +1,5 @@
 <template>
-  <json-card :cddaItem="props.cddaItem" />
+  <json-card :jsonItem="props.cddaItem.jsonItem" />
 </template>
 <script lang="ts">
 import JsonCard from 'src/components/loaderView/card/common/JsonCard.vue';

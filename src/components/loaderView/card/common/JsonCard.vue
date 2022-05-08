@@ -33,7 +33,7 @@
 </template>
 
 <script lang="ts">
-import { CddaItem } from 'src/type/common/CddaItem';
+import { JsonItem } from 'src/type';
 import { ref } from 'vue';
 export default {
   name: 'JsonCard',
@@ -44,11 +44,11 @@ export default {
 
 <script setup lang="ts">
 const props = defineProps<{
-  cddaItem: CddaItem;
+  jsonItem: JsonItem;
 }>();
 const tab = ref('proceed');
-const json = ref(JSON.stringify(props.cddaItem.jsonItem.content, null, 4));
-const originalJson = ref(props.cddaItem.jsonItem.originalContent);
+const json = ref(JSON.stringify(props.jsonItem.content, null, 4));
+const originalJson = ref(props.jsonItem.originalContent);
 const isShow = json.value != undefined;
 const spinnerShow = ref(false);
 </script>

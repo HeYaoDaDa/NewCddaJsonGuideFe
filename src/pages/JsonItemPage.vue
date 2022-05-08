@@ -1,7 +1,7 @@
 <template>
   <q-page v-if="show" class="row justify-around content-start">
     <template v-for="cddaItem in cddaItems" :key="cddaItem.jsonItem._id">
-      <default-cdda-item-page :cddaItem="cddaItem" />
+      <factory-select1 :cddaItem="cddaItem" />
     </template>
     <p v-if="cddaItems.length === 0">no find</p>
   </q-page>
@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import { Loading } from 'quasar';
-import DefaultCddaItemPage from 'src/components/loaderView/page/DefaultCddaItemPage.vue';
+import FactorySelect1 from 'src/components/center/FactorySelect.vue';
 import { LOG_NO_CHANGE_COMPUTED } from 'src/constant/loggerConstant';
 import { useUserConfigStore } from 'src/stores/userConfig';
 import { CddaItem } from 'src/type/common/CddaItem';

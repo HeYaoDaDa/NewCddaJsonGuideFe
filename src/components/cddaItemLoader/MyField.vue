@@ -25,7 +25,7 @@
 
 <script lang="ts">
 import { RouteLocationRaw } from 'vue-router';
-import OptionalRoute from './MyText/OptionalRoute.vue';
+import OptionalRoute from 'src/components/base/OptionalRoute.vue';
 export default {
   name: 'MyField',
   inheritAttrs: false,

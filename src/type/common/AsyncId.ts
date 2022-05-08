@@ -1,8 +1,6 @@
 import { CddaType } from 'src/constant/cddaType';
-import { getString } from 'src/util/baseJsonUtil';
 import { getCddaItemByTypeAndId } from 'src/util/cddaItemUtil';
-import { arrayIsEmpty, stringIsNotEmpty } from 'src/util/commonUtil';
-import { getGetTextTransationString } from 'src/util/getTextUtil';
+import { stringIsNotEmpty } from 'src/util/commonUtil';
 import { reactive } from 'vue';
 import { RouteLocationRaw } from 'vue-router';
 import { CddaItem } from './CddaItem';
@@ -30,7 +28,8 @@ export class AsyncId {
     asyncUpdateName?: (asyncId: AsyncId) => Promise<void>
   ) {
     const self = new AsyncId();
-    self.value = reactive({ id: id, name: id });
+    self.value.id = id;
+    self.value.name = id;
     self.type = type;
     self.route = {
       name: 'jsonItem',
@@ -43,16 +42,6 @@ export class AsyncId {
       await asyncUpdateName(self);
     }
     return self;
-  }
-
-  static async commonUpdateName(asyncId: AsyncId) {
-    const cddaItems = await asyncId.getCddaItems();
-    if (arrayIsEmpty(cddaItems)) return;
-    const json = cddaItems[0].jsonItem.content;
-    if ('name' in json)
-      asyncId.value.name = getGetTextTransationString(
-        getString(json as Record<string, unknown>, 'name')
-      );
   }
 
   public getName(): string {

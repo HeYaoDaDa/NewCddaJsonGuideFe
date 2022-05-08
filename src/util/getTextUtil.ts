@@ -36,5 +36,5 @@ export function convertGetTextTransationString(
 }
 
 export function getGetTextTransationString(value: unknown): string {
-  return getGetTextTransationString(parseGetTextTransation(value));
+  return convertGetTextTransationString(parseGetTextTransation(value));
 }
