@@ -4,6 +4,10 @@
       <my-text :content="data.name" />
     </my-field>
 
+    <my-field label="parent">
+      <my-text-async-id :content="data.parent" />
+    </my-field>
+
     <my-field label="secondary">
       <my-text :content="data.secondary" />
     </my-field>
