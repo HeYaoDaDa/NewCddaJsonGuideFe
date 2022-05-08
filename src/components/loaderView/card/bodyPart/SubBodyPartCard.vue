@@ -5,7 +5,7 @@
     </my-field>
 
     <my-field label="parent">
-      <my-text-async-id :content="data.parent" />
+      <my-text-async-id :content="toArray(data.parent)" />
     </my-field>
 
     <my-field label="secondary">
@@ -25,7 +25,7 @@
     </my-field>
 
     <my-field label="opposite" v-if="data.opposite">
-      <my-text-async-id :content="data.opposite" />
+      <my-text-async-id :content="toArray(data.opposite)" />
     </my-field>
   </my-card>
 </template>
@@ -43,6 +43,7 @@ import MyField from 'src/components/cddaItemLoader/MyField.vue';
 import MyText from 'src/components/cddaItemLoader/MyText/MyText.vue';
 import MyTextAsyncId from 'src/components/cddaItemLoader/MyText/MyTextAsyncId.vue';
 import { reactive } from 'vue';
+import { toArray } from 'src/util/commonUtil';
 const props = defineProps<{
   cddaData: SubBodyPart;
 }>();
