@@ -1,3 +1,5 @@
+import { itemTypes } from 'src/constant/dataConstant';
+
 export function parseVolumeToMl(string: string | number): number {
   if (typeof string === 'undefined') return 0;
   if (typeof string === 'number') return string * 250;
@@ -92,4 +94,8 @@ export function timeToString(value: number): string {
     result += s.toString() + ' s';
   }
   return result;
+}
+
+export function isItem(jsonType: string): boolean {
+  return itemTypes.includes(jsonType);
 }

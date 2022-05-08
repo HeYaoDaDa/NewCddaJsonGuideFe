@@ -5,6 +5,7 @@
   >
     <q-card-section>
       <optional-route
+        v-if="props.label"
         :content="$t(props.transfer ?? 'label.' + props.label)"
         :route="props.route"
       />
