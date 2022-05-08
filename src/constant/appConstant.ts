@@ -32,3 +32,13 @@ export enum CddaBranch {
   experimental,
   stable,
 }
+
+export enum BreathabilityRating {
+  IMPERMEABLE = 0,
+  POOR = 30,
+  AVERAGE = 50,
+  GOOD = 80,
+  MOISTURE_WICKING = 110,
+  SECOND_SKIN = 140,
+  last = 0,
+}
