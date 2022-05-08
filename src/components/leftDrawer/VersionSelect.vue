@@ -40,6 +40,5 @@ const selectedGameVersion = computed({
 void getVersions().then((newVersions) => {
   options.length = 0;
   options.push(...newVersions);
-  userConfig.updateVersionInfo(newVersions);
 });
 </script>

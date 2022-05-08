@@ -19,27 +19,6 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
     selectMods(newMods: Mod[]) {
       this.mods = newMods;
     },
-    updateVersionInfo(newVersions: Version[]) {
-      if (arrayIsNotEmpty(newVersions)) {
-        if (this.version._id === KEY_LATEST_VERSION_ID) {
-          this.version._id = newVersions[0]._id;
-        }
-        const updateVersion = newVersions.find(
-          (v) => this.version._id === v._id
-        );
-        if (updateVersion) {
-          this.version.branch = updateVersion.branch;
-          this.version.createDate = updateVersion.createDate;
-          this.version.publishDate = updateVersion.publishDate;
-          this.version.releaseDescribe = updateVersion.releaseDescribe;
-          this.version.releaseId = updateVersion.releaseId;
-          this.version.tagDate = updateVersion.tagDate;
-          this.version.tagMessage = updateVersion.tagMessage;
-          this.version.tagName = updateVersion.tagName;
-          this.version.targetCommit = updateVersion.targetCommit;
-        }
-      }
-    },
     updateModsInfo(newMods: Mod[]) {
       if (arrayIsNotEmpty(newMods)) {
         this.mods.forEach((mod) => {
