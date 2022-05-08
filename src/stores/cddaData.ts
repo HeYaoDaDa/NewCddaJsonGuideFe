@@ -11,7 +11,7 @@ export const useCddaData = defineStore(KEY_CDDA_DATA, {
   getters: {
     clear() {
       console.debug('clear old cdda data');
-      this.data.clear;
+      this.data.clear();
     },
   },
   actions: {
