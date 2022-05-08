@@ -10,8 +10,9 @@ import { getTranslationString } from 'src/util/jsonUtil';
 import { h, VNode } from 'vue';
 
 export class BodyPart extends SuperLoader<BodyPartInterface> {
-  async doLoad(data: BodyPartInterface, jsonObject: Record<string, unknown>): Promise<void> {
-    await this.parseJson(data, jsonObject);
+  async doLoad(data: BodyPartInterface, jsonItem: JsonItem): Promise<void> {
+    const content = jsonItem.content as Record<string, unknown>;
+    await this.parseJson(data, content);
   }
 
   toView(): VNode[] {

@@ -5,23 +5,33 @@ export abstract class SuperLoader<T extends object> {
   data: T = reactive({}) as T;
   isLoad = false;
   jsonItem?: JsonItem;
+  jsonObject?: object;
 
-  async load(value: JsonItem) {
-    if (this.isLoad || !this.validateValue(value)) return;
-    console.debug('<%s> start load (%s)(%s)(%s)', this.constructor.name, value.type, value.jsonId, value._id);
+  async load(jsonItem: JsonItem, jsonObject?: object) {
+    if (this.isLoad || !this.validateValue(jsonItem, jsonObject)) return;
+    console.debug(
+      '<%s> start load (%s)(%s)(%s)\n(%o)',
+      this.constructor.name,
+      jsonItem.type,
+      jsonItem.jsonId,
+      jsonItem._id,
+      jsonObject
+    );
     this.isLoad = true;
-    this.jsonItem = value;
-    await this.doLoad(this.data, value.content as Record<string, unknown>, value);
+    this.jsonItem = jsonItem;
+    this.jsonObject = jsonObject;
+    await this.doLoad(this.data, jsonItem, jsonObject);
   }
 
-  abstract doLoad(data: T, jsonObject: Record<string, unknown>, jsonItem: JsonItem): Promise<void>;
+  abstract doLoad(data: T, jsonItem: JsonItem, jsonObject?: object): Promise<void>;
 
   toView(): VNode[] {
     return [];
   }
 
-  validateValue(value: JsonItem): boolean {
-    return value !== undefined;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  validateValue(jsonItem: JsonItem, jsonObject?: object): boolean {
+    return jsonItem !== undefined;
   }
 
   validateVersion(version: Version): boolean {

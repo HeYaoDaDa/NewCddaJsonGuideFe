@@ -10,9 +10,9 @@ import { h, VNode } from 'vue';
 import { SuperLoader } from '../SuperLoader';
 
 export class SubBodyPart extends SuperLoader<SubBodyPartInterface> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async doLoad(data: SubBodyPartInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem): Promise<void> {
-    await this.parseJson(data, jsonObject);
+  async doLoad(data: SubBodyPartInterface, jsonItem: JsonItem): Promise<void> {
+    const content = jsonItem.content as Record<string, unknown>;
+    await this.parseJson(data, content);
   }
 
   toView(): VNode[] {

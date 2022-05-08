@@ -5,7 +5,7 @@ import { h, VNode } from 'vue';
 
 export class Dummy extends SuperLoader<object> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async doLoad(data: object, jsonObject: Record<string, unknown>, jsonItem: JsonItem): Promise<void> {
+  async doLoad(data: object, jsonItem: JsonItem): Promise<void> {
     return;
   }
 
