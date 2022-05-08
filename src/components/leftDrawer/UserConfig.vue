@@ -30,11 +30,7 @@ const userConfig = useUserConfigStore();
 const cddaData = useCddaData();
 watch(
   computed({
-    get: () => [
-      userConfig.language.value,
-      userConfig.version._id,
-      userConfig.mods.map((mod) => mod.data.id),
-    ],
+    get: () => [userConfig.language.value, userConfig.version._id, userConfig.mods.map((mod) => mod.data.id)],
     set: () => console.error(LOG_NO_CHANGE_COMPUTED),
   }),
   () => {

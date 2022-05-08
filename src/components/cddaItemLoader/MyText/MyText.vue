@@ -1,8 +1,6 @@
 <template>
   <template
-    v-for="(contentItem, index) in Array.isArray(props.content)
-      ? props.content
-      : [props.content]"
+    v-for="(contentItem, index) in Array.isArray(props.content) ? props.content : [props.content]"
     :key="contentItem"
   >
     <my-text-part
@@ -13,13 +11,7 @@
     />
 
     <my-text-part
-      v-if="
-        props.separator &&
-        index <
-          (Array.isArray(props.content) ? props.content : [props.content])
-            .length -
-            1
-      "
+      v-if="props.separator && index < (Array.isArray(props.content) ? props.content : [props.content]).length - 1"
       :content="props.separator"
     />
   </template>

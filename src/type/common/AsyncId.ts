@@ -22,11 +22,7 @@ export class AsyncId {
     };
   }
 
-  static async new(
-    id: string,
-    type: string,
-    asyncUpdateName?: (asyncId: AsyncId) => Promise<void>
-  ) {
+  static async new(id: string, type: string, asyncUpdateName?: (asyncId: AsyncId) => Promise<void>) {
     const self = new AsyncId();
     self.value.id = id;
     self.value.name = id;

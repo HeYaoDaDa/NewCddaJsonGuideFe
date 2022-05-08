@@ -1,10 +1,5 @@
 <template>
-  <q-select
-    filled
-    v-model="selectedLanguage"
-    :options="LANGUAGE_OPTIONS"
-    options-dense
-  >
+  <q-select filled v-model="selectedLanguage" :options="LANGUAGE_OPTIONS" options-dense>
     <template v-slot:prepend> <q-icon name="language" /> </template>
   </q-select>
 </template>
@@ -28,11 +23,9 @@ const { locale } = useI18n({ useScope: 'global' });
 const userConfig = useUserConfigStore();
 
 locale.value = userConfig.language.value;
-void import('quasar/lang/' + userConfig.language.value).then(
-  (lang: typeof import('quasar/lang/*')) => {
-    Quasar.lang.set(lang.default);
-  }
-);
+void import('quasar/lang/' + userConfig.language.value).then((lang: typeof import('quasar/lang/*')) => {
+  Quasar.lang.set(lang.default);
+});
 
 const selectedLanguage = computed({
   get: () => userConfig.language,
@@ -44,10 +37,8 @@ const selectedLanguage = computed({
 watch(selectedLanguage, (newLanguage) => {
   const newLocale = newLanguage.value;
   locale.value = newLocale;
-  void import('quasar/lang/' + newLocale).then(
-    (lang: typeof import('quasar/lang/*')) => {
-      Quasar.lang.set(lang.default);
-    }
-  );
+  void import('quasar/lang/' + newLocale).then((lang: typeof import('quasar/lang/*')) => {
+    Quasar.lang.set(lang.default);
+  });
 });
 </script>

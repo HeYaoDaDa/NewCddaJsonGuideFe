@@ -1,14 +1,7 @@
 <template>
-  <q-card
-    class="col q-my-sm q-mx-xs"
-    :style="{ 'min-width': props.width ?? '25%' }"
-  >
+  <q-card class="col q-my-sm q-mx-xs" :style="{ 'min-width': props.width ?? '25%' }">
     <q-card-section>
-      <optional-route
-        v-if="props.label"
-        :content="$t(props.transfer ?? 'label.' + props.label)"
-        :route="props.route"
-      />
+      <optional-route v-if="props.label" :content="$t(props.transfer ?? 'label.' + props.label)" :route="props.route" />
 
       <slot name="befor" />
 

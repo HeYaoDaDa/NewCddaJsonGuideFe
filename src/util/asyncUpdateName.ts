@@ -8,10 +8,7 @@ export async function commonUpdateName(asyncId: AsyncId) {
   if (arrayIsEmpty(cddaItems)) return;
   const json = cddaItems[0].jsonItem.content;
   if ('name' in json) {
-    const nameObject = getOptionalUnknown(
-      json as Record<string, unknown>,
-      'name'
-    );
+    const nameObject = getOptionalUnknown(json as Record<string, unknown>, 'name');
     asyncId.value.name = getGetTextTransationString(nameObject);
   }
 }

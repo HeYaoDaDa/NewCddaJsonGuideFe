@@ -8,10 +8,7 @@
 <script lang="ts">
 import { Loading } from 'quasar';
 import MegerVNode from 'src/components/base/MegerVNode.vue';
-import {
-  viewCddaItems,
-  loadCddaItems,
-} from 'src/components/center/ViewCddaItems';
+import { viewCddaItems, loadCddaItems } from 'src/components/center/ViewCddaItems';
 import { LOG_NO_CHANGE_COMPUTED } from 'src/constant/loggerConstant';
 import { useUserConfigStore } from 'src/stores/userConfig';
 import { CddaItem } from 'src/type/common/CddaItem';
@@ -30,9 +27,7 @@ const $route = useRoute();
 const cddaItems = reactive(new Array<CddaItem>());
 const userConfig = useUserConfigStore();
 const show = ref(false);
-let cddaItemsView = h(MegerVNode, null, () =>
-  viewCddaItems(cddaItems.map((cddaItem) => cddaItem.data))
-);
+let cddaItemsView = h(MegerVNode, null, () => viewCddaItems(cddaItems.map((cddaItem) => cddaItem.data)));
 
 async function updateCddaItem(jsonType: string, jsonId: string) {
   console.debug('updateJsonItem start');
@@ -45,10 +40,7 @@ async function updateCddaItem(jsonType: string, jsonId: string) {
   Loading.hide();
 }
 
-updateCddaItem(
-  $route.params.jsonType as string,
-  $route.params.jsonId as string
-);
+updateCddaItem($route.params.jsonType as string, $route.params.jsonId as string);
 
 onBeforeRouteUpdate((to, from) => {
   if (to.params !== from.params) {
@@ -59,18 +51,11 @@ onBeforeRouteUpdate((to, from) => {
 
 watch(
   computed({
-    get: () => [
-      userConfig.language.value,
-      userConfig.version._id,
-      userConfig.mods.map((mod) => mod.data.id),
-    ],
+    get: () => [userConfig.language.value, userConfig.version._id, userConfig.mods.map((mod) => mod.data.id)],
     set: () => console.error(LOG_NO_CHANGE_COMPUTED),
   }),
   () => {
-    updateCddaItem(
-      $route.params.jsonType as string,
-      $route.params.jsonId as string
-    );
+    updateCddaItem($route.params.jsonType as string, $route.params.jsonId as string);
   }
 );
 </script>

@@ -3,10 +3,7 @@ import { useCddaData } from 'src/stores/cddaData';
 import { CddaItem } from 'src/type/common/CddaItem';
 import { arrayIsEmpty, stringIsEmpty } from './commonUtil';
 
-export async function getCddaItemByTypeAndId(
-  jsonType: string,
-  jsonId: string
-): Promise<CddaItem[]> {
+export async function getCddaItemByTypeAndId(jsonType: string, jsonId: string): Promise<CddaItem[]> {
   if (stringIsEmpty(jsonType) || stringIsEmpty(jsonId)) {
     return new Promise((resolve) => {
       resolve([]);
@@ -20,9 +17,7 @@ export async function getCddaItemByTypeAndId(
   } else {
     const jsonItems = await getJsonItemListByJsonId(jsonType, jsonId);
     if (arrayIsEmpty(jsonItems)) {
-      console.debug(
-        `getJsonItemListByJsonId result is empty, Type is ${jsonType}, Id is ${jsonId}`
-      );
+      console.debug(`getJsonItemListByJsonId result is empty, Type is ${jsonType}, Id is ${jsonId}`);
       return [];
     }
     cddaData.addJsonItem(jsonItems);

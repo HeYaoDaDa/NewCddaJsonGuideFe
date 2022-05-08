@@ -15,16 +15,10 @@ export const useCddaData = defineStore(KEY_CDDA_DATA, {
       toArray(cddaItems).forEach((cddaItem) => {
         let jsonTypeMap = this.data.get(cddaItem.jsonItem.type);
         if (jsonTypeMap) {
-          jsonTypeMap.set(
-            cddaItem.jsonItem.jsonId,
-            arrayPush(jsonTypeMap.get(cddaItem.jsonItem.jsonId), cddaItem)
-          );
+          jsonTypeMap.set(cddaItem.jsonItem.jsonId, arrayPush(jsonTypeMap.get(cddaItem.jsonItem.jsonId), cddaItem));
         } else {
           jsonTypeMap = new Map<string, CddaItem[]>();
-          jsonTypeMap.set(
-            cddaItem.jsonItem.jsonId,
-            arrayPush(jsonTypeMap.get(cddaItem.jsonItem.jsonId), cddaItem)
-          );
+          jsonTypeMap.set(cddaItem.jsonItem.jsonId, arrayPush(jsonTypeMap.get(cddaItem.jsonItem.jsonId), cddaItem));
           this.data.set(cddaItem.jsonItem.type, jsonTypeMap);
         }
       });
@@ -40,17 +34,10 @@ export const useCddaData = defineStore(KEY_CDDA_DATA, {
       console.debug('clear old cdda data');
       this.data.clear();
     },
-    addLoader(
-      type: string,
-      id: string,
-      _id: string,
-      loader: SuperLoader<object>
-    ) {
+    addLoader(type: string, id: string, _id: string, loader: SuperLoader<object>) {
       const cddaItems = this.data.get(type)?.get(id);
       if (cddaItems) {
-        const cddaItem = cddaItems.find(
-          (cddaItem) => cddaItem.jsonItem._id === _id
-        );
+        const cddaItem = cddaItems.find((cddaItem) => cddaItem.jsonItem._id === _id);
         if (cddaItem) {
           cddaItem.data = loader;
         }

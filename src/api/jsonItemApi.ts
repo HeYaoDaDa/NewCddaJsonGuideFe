@@ -14,17 +14,14 @@ export async function getJsonItemsByItemType(
   language = language ?? userConfig.language.value;
   version = version ?? userConfig.version._id;
   mods = mods ?? userConfig.mods.map((mod) => mod.data.id);
-  const response = await api.get(
-    `${HOST}/${API_VERSION}/jsonItems/${itemType}`,
-    {
-      params: {
-        pipeline: pipeline ? JSON.stringify(pipeline) : '',
-        language,
-        version,
-        mods: mods ? JSON.stringify(mods) : '',
-      },
-    }
-  );
+  const response = await api.get(`${HOST}/${API_VERSION}/jsonItems/${itemType}`, {
+    params: {
+      pipeline: pipeline ? JSON.stringify(pipeline) : '',
+      language,
+      version,
+      mods: mods ? JSON.stringify(mods) : '',
+    },
+  });
   return response.data;
 }
 
@@ -39,12 +36,9 @@ export async function getJsonItemListByJsonId(
   language = language ?? userConfig.language.value;
   version = version ?? userConfig.version._id;
   mods = mods ?? userConfig.mods.map((mod) => mod.data.id);
-  const response = await api.get(
-    `${HOST}/${API_VERSION}/jsonItems/${itemType}/${jsonId}`,
-    {
-      params: { language, version, mods: JSON.stringify(mods) },
-    }
-  );
+  const response = await api.get(`${HOST}/${API_VERSION}/jsonItems/${itemType}/${jsonId}`, {
+    params: { language, version, mods: JSON.stringify(mods) },
+  });
   return response.data;
 }
 

@@ -1,12 +1,7 @@
 <template>
-  <template
-    v-if="!(typeof props.isHide === 'function' ? props.isHide() : props.isHide)"
-  >
+  <template v-if="!(typeof props.isHide === 'function' ? props.isHide() : props.isHide)">
     <dt>
-      <optional-route
-        :content="$t(props.transfer ?? 'label.' + props.label)"
-        $route="props.route"
-      />
+      <optional-route :content="$t(props.transfer ?? 'label.' + props.label)" $route="props.route" />
     </dt>
 
     <dd>

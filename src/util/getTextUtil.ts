@@ -8,9 +8,7 @@ interface GetTextTransation {
   ctxt?: string;
 }
 
-export function parseGetTextTransation(
-  value: unknown
-): GetTextTransation | undefined {
+export function parseGetTextTransation(value: unknown): GetTextTransation | undefined {
   const type = typeof value;
   if (type === 'string') {
     return { str: value as string };
@@ -19,20 +17,11 @@ export function parseGetTextTransation(
   }
 }
 
-export function convertGetTextTransationString(
-  value: GetTextTransation | undefined
-): string {
+export function convertGetTextTransationString(value: GetTextTransation | undefined): string {
   if (!value) {
     return 'null';
   }
-  return (
-    value.str ??
-    value.str_sp ??
-    value.str_pl ??
-    value.male ??
-    value.female ??
-    'null'
-  );
+  return value.str ?? value.str_sp ?? value.str_pl ?? value.male ?? value.female ?? 'null';
 }
 
 export function getGetTextTransationString(value: unknown): string {

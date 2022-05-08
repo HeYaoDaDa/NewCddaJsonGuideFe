@@ -9,11 +9,7 @@ export async function loadCddaItems(cddaItems: CddaItem[]) {
 }
 
 async function loadCddaItem(cddaItem: CddaItem) {
-  const loader =
-    cddaItem.data ??
-    loaderFactorys
-      .find((loaderFactory) => loaderFactory.validate(cddaItem))
-      ?.getLoader();
+  const loader = cddaItem.data ?? loaderFactorys.find((loaderFactory) => loaderFactory.validate(cddaItem))?.getLoader();
   if (loader) {
     await loader.load(cddaItem.jsonItem);
     if (!cddaItem.data) {

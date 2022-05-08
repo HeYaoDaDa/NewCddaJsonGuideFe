@@ -1,23 +1,14 @@
 <template>
   <li v-if="props.li">
-    <optional-route
-      :content="formatContent(props.content)"
-      :route="props.route"
-    />
+    <optional-route :content="formatContent(props.content)" :route="props.route" />
   </li>
 
   <p v-if="props.p">
-    <optional-route
-      :content="formatContent(props.content)"
-      :route="props.route"
-    />
+    <optional-route :content="formatContent(props.content)" :route="props.route" />
   </p>
 
   <span v-if="!(props.p || props.li)">
-    <optional-route
-      :content="formatContent(props.content)"
-      :route="props.route"
-    />
+    <optional-route :content="formatContent(props.content)" :route="props.route" />
   </span>
 </template>
 

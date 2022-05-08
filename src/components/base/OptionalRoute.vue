@@ -1,7 +1,5 @@
 <template>
-  <router-link v-if="props.route" :to="props.route">{{
-    props.content
-  }}</router-link>
+  <router-link v-if="props.route" :to="props.route">{{ props.content }}</router-link>
 
   <template v-else>
     {{ props.content }}

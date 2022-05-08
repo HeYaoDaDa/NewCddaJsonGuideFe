@@ -1,9 +1,5 @@
 <template>
-  <q-card
-    v-if="isShow"
-    class="col q-my-sm q-mx-xs"
-    :style="{ 'min-width': '-webkit-fill-available' }"
-  >
+  <q-card v-if="isShow" class="col q-my-sm q-mx-xs" :style="{ 'min-width': '-webkit-fill-available' }">
     <q-card-section>
       <q-expansion-item label="JSON">
         <q-tabs

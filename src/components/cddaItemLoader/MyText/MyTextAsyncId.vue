@@ -1,10 +1,5 @@
 <template>
-  <my-text
-    :content="props.content?.getName()"
-    :route="(props.content?.route as object)"
-    :p="props.p"
-    :li="props.li"
-  />
+  <my-text :content="props.content?.getName()" :route="(props.content?.route as object)" :p="props.p" :li="props.li" />
 </template>
 
 <script lang="ts">
