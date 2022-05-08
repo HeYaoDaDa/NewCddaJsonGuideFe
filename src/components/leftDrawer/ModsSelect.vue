@@ -8,8 +8,7 @@
     multiple
     use-chips
     behavior="dialog"
-  >
-  </q-select>
+  />
 </template>
 
 <script lang="ts">
