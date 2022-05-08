@@ -1,5 +1,5 @@
 import { JsonItem } from './baseType';
-import { SuperLoader } from './SuperLoader';
+import { SuperLoader } from '../loader/baseLoader/SuperLoader';
 
 export interface CddaItem {
   jsonItem: JsonItem;

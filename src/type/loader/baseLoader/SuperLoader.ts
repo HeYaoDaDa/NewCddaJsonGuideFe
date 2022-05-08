@@ -1,5 +1,5 @@
 import { reactive, VNode } from 'vue';
-import { Version } from './baseType';
+import { Version } from 'src/type/common/baseType';
 
 export abstract class SuperLoader<T extends object> {
   data: T = reactive({}) as T;

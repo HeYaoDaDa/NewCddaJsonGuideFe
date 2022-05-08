@@ -1,6 +1,6 @@
 import { CddaType } from 'src/constant/cddaType';
 import { JsonItem } from 'src/type/common/baseType';
-import { SuperLoader } from 'src/type/common/SuperLoader';
+import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { getTranslationString } from 'src/util/jsonUtil';
 
 export class Mod extends SuperLoader<ModInterface> {
