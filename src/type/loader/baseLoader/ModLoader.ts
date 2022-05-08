@@ -4,13 +4,8 @@ import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { getTranslationString } from 'src/util/jsonUtil';
 
 export class Mod extends SuperLoader<ModInterface> {
-  async load(value: JsonItem): Promise<void> {
-    if (this.isLoad || !this.validateValue(value)) return;
-    this.isLoad = true;
-    const data = this.data;
-    const jsonObject = value.content as Record<string, unknown>;
-
-    data.id = value.jsonId;
+  async doLoad(data: ModInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem): Promise<void> {
+    data.id = jsonItem.jsonId;
     data.name = getTranslationString(jsonObject, 'name');
   }
 
