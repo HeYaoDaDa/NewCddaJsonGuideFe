@@ -1,5 +1,4 @@
 import BodyPartCard from 'src/components/loaderView/card/bodyPart/BodyPartCard.vue';
-import JsonCard from 'src/components/loaderView/card/common/JsonCard.vue';
 import { CddaType } from 'src/constant/cddaType';
 import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
@@ -20,7 +19,6 @@ export class BodyPart extends SuperLoader<BodyPartInterface> {
 
     if (this.isLoad && this.jsonItem) {
       result.push(h(BodyPartCard, { cddaData: this }));
-      result.push(h(JsonCard, { jsonItem: this.jsonItem }));
     }
 
     return result;

@@ -1,5 +1,4 @@
 import SubBodyPartCard from 'src/components/loaderView/card/bodyPart/SubBodyPartCard.vue';
-import JsonCard from 'src/components/loaderView/card/common/JsonCard.vue';
 import { CddaType } from 'src/constant/cddaType';
 import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
@@ -20,7 +19,6 @@ export class SubBodyPart extends SuperLoader<SubBodyPartInterface> {
 
     if (this.isLoad && this.jsonItem) {
       result.push(h(SubBodyPartCard, { cddaData: this }));
-      result.push(h(JsonCard, { jsonItem: this.jsonItem }));
     }
 
     return result;

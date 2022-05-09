@@ -12,7 +12,6 @@ import { getOptionalAsyncId, getTranslationString } from 'src/util/jsonUtil';
 import { h, VNode } from 'vue';
 import { Fuel } from './FuelLoader';
 import { MaterialBurn } from './MaterialBurn';
-import JsonCard from 'src/components/loaderView/card/common/JsonCard.vue';
 
 export class Material extends SuperLoader<MaterialInterface> {
   async doLoad(data: MaterialInterface, jsonItem: JsonItem): Promise<void> {
@@ -24,7 +23,6 @@ export class Material extends SuperLoader<MaterialInterface> {
 
     if (this.isLoad && this.jsonItem) {
       result.push(h(MaterialCard, { cddaData: this }));
-      result.push(h(JsonCard, { jsonItem: this.jsonItem }));
     }
 
     return result;
