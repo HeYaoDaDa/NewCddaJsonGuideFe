@@ -4,6 +4,7 @@ import { CddaType } from 'src/constant/cddaType';
 import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
 import { commonUpdateName } from 'src/util/asyncUpdateName';
+import { toArray } from 'src/util/commonUtil';
 import { h, VNode } from 'vue';
 import { SuperLoader } from '../../baseLoader/SuperLoader';
 
@@ -22,7 +23,7 @@ export abstract class AbstractComponent extends SuperLoader<AbstractComponentInt
 
     vNodes.push(
       h(MyTextAsyncId, {
-        content: data,
+        content: toArray(data.name),
       }),
       h(MyText, {
         content: ` x ${data.count}`,
