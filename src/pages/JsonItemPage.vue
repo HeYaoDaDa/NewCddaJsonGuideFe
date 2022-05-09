@@ -40,12 +40,12 @@ async function updateCddaItem(jsonType: string, jsonId: string) {
   Loading.hide();
 }
 
-updateCddaItem($route.params.jsonType as string, $route.params.jsonId as string);
+void updateCddaItem($route.params.jsonType as string, $route.params.jsonId as string);
 
 onBeforeRouteUpdate((to, from) => {
   if (to.params !== from.params) {
     console.debug('JsonItemPage route update');
-    updateCddaItem(to.params.jsonType as string, to.params.jsonId as string);
+    void updateCddaItem(to.params.jsonType as string, to.params.jsonId as string);
   }
 });
 
@@ -55,7 +55,7 @@ watch(
     set: () => console.error(LOG_NO_CHANGE_COMPUTED),
   }),
   () => {
-    updateCddaItem($route.params.jsonType as string, $route.params.jsonId as string);
+    void updateCddaItem($route.params.jsonType as string, $route.params.jsonId as string);
   }
 );
 </script>

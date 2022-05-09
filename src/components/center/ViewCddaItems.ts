@@ -6,7 +6,7 @@ import { reactive, VNode, h } from 'vue';
 import JsonCard from 'src/components/loaderView/card/common/JsonCard.vue';
 
 export async function loadCddaItems(cddaItems: CddaItem[]) {
-  await Promise.allSettled(cddaItems.map((cddaItem) => loadCddaItem(cddaItem)));
+  await Promise.all(cddaItems.map((cddaItem) => loadCddaItem(cddaItem)));
 }
 
 async function loadCddaItem(cddaItem: CddaItem) {
