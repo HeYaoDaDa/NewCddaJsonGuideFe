@@ -44,16 +44,15 @@ export class Recipe extends SuperLoader<RecipeInterface> {
 
   private async parseJson(data: RecipeInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
     data.obsolete = getBoolean(jsonObject, 'obsolete');
-    data.time = parseTime(jsonObject);
     data.difficulty = getNumber(jsonObject, 'difficulty');
     data.activity = getString(jsonObject, 'activity_level');
     data.neverLearn = getBoolean(jsonObject, 'never_learn');
+    data.time = parseTime(jsonObject);
     const batchTuple = parseBatch(jsonObject);
     data.batchScale = batchTuple[0];
     data.batchSize = batchTuple[1];
 
-    const asyncPromises = new Array<Promise<unknown>>();
-    asyncPromises.push(
+    const asyncPromises = [
       (async () => (data.result = await getOptionalAsyncId(jsonObject, 'result', CddaType.item, commonUpdateName)))(),
       (async () => (data.byproducts = await parseByproducts(jsonObject)))(),
       (async () => (data.skillRequire = await parseSkillRequire(jsonObject)))(),
@@ -68,9 +67,9 @@ export class Recipe extends SuperLoader<RecipeInterface> {
           (async () => (data.autolearnRequire = await parseAutoLearn(jsonObject, data.skillUse, data.difficulty)))(),
           (async () => (data.decompLearn = await parseDecompLearn(jsonObject, data.skillUse)))(),
         ]);
-      })()
-    );
-    await Promise.allSettled(asyncPromises);
+      })(),
+    ];
+    await Promise.all(asyncPromises);
   }
 }
 
