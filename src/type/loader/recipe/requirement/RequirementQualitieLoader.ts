@@ -5,6 +5,7 @@ import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
 import { commonUpdateName } from 'src/util/asyncUpdateName';
 import { getNumber } from 'src/util/baseJsonUtil';
+import { toArray } from 'src/util/commonUtil';
 import { getAsyncId } from 'src/util/jsonUtil';
 import { h, VNode } from 'vue';
 import { SuperLoader } from '../../baseLoader/SuperLoader';
@@ -20,7 +21,7 @@ export class RequirementQualitie extends SuperLoader<RequirementQualitieInterfac
 
     vNodes.push(
       h(MyTextAsyncId, {
-        content: data,
+        content: toArray(data.name),
       }),
       h(MyText, {
         content: `(${data.level}) x ${data.amount}`,

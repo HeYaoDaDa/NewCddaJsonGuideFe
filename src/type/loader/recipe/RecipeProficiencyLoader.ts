@@ -7,7 +7,7 @@ import { JsonItem } from 'src/type/common/baseType';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { commonUpdateName } from 'src/util/asyncUpdateName';
 import { getBoolean, getNumber } from 'src/util/baseJsonUtil';
-import { arrayIsNotEmpty } from 'src/util/commonUtil';
+import { arrayIsNotEmpty, toArray } from 'src/util/commonUtil';
 import { timeToString } from 'src/util/dataUtil';
 import { getAsyncId, getOptionalTime } from 'src/util/jsonUtil';
 import { h, VNode } from 'vue';
@@ -22,7 +22,7 @@ export class RecipeProficiency extends SuperLoader<RecipeProficiencyInterface> {
     const result = new Array<VNode>();
     const data = this.data;
 
-    result.push(h(MyTextAsyncId, { content: data.name }));
+    result.push(h(MyTextAsyncId, { content: toArray(data.name) }));
     if (data.timeMultiplier > 1) {
       result.push(
         h(MyText, {

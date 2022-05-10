@@ -18,7 +18,11 @@ export abstract class AbstractComponent extends SuperLoader<AbstractComponentInt
     const data = this.data;
 
     if (data.requirement) {
-      return vNodes;
+      vNodes.push(
+        h(MyText, {
+          content: '<requirement>',
+        })
+      );
     }
 
     vNodes.push(
@@ -36,7 +40,6 @@ export abstract class AbstractComponent extends SuperLoader<AbstractComponentInt
         })
       );
     }
-
     return vNodes;
   }
 

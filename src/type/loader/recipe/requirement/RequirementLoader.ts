@@ -1,9 +1,11 @@
 import MyCard from 'src/components/cddaItemLoader/MyCard.vue';
 import RequirementFieldSet from 'src/components/loaderView/card/recipe/RequirementFieldSet.vue';
 import { CddaType } from 'src/constant/cddaType';
+import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
 import { getArray } from 'src/util/baseJsonUtil';
-import { toArray } from 'src/util/commonUtil';
+import { cloneObject } from 'src/util/cloneObject';
+import { arrayIsNotEmpty, toArray } from 'src/util/commonUtil';
 import { h, VNode } from 'vue';
 import { SuperLoader } from '../../baseLoader/SuperLoader';
 import { ItemComponent } from './ItemComponentLoader';
@@ -91,4 +93,69 @@ interface RequirementInterface {
   qualities: Array<Array<RequirementQualitie>>;
   tools: Array<Array<ToolComponent>>;
   components: Array<Array<ItemComponent>>;
+}
+
+export async function normalizeRequirmentInterface(
+  requirement: Requirement,
+  multiplier?: number,
+  usings?: { requirment: AsyncId; count: number }[]
+): Promise<Requirement> {
+  const newRequirement = cloneObject(requirement);
+
+  const myUsings = usings ?? new Array<{ requirment: AsyncId; count: number }>();
+
+  [newRequirement.data.tools, newRequirement.data.components].forEach((componentListList) => {
+    componentListList.forEach((components) =>
+      components.splice(
+        0,
+        components.length,
+        ...components.filter((component) => {
+          if (component.data.requirement) {
+            myUsings.push({ requirment: component.data.name, count: component.data.count });
+            return false;
+          } else {
+            return true;
+          }
+        })
+      )
+    );
+    componentListList.splice(
+      0,
+      componentListList.length,
+      ...componentListList.filter((tools) => arrayIsNotEmpty(tools))
+    );
+  });
+
+  if (arrayIsNotEmpty(myUsings)) {
+    const usingRequirments = await Promise.all(
+      myUsings.map(async (using) => {
+        const requirmentJsonItems = await using.requirment.getCddaItems();
+        if (arrayIsNotEmpty(requirmentJsonItems)) {
+          const usingRequirement = new Requirement();
+          await usingRequirement.load(requirmentJsonItems[0].jsonItem);
+          return await normalizeRequirmentInterface(usingRequirement, using.count);
+        }
+        return undefined;
+      })
+    );
+
+    usingRequirments.forEach((usingRequirment) => {
+      if (usingRequirment) {
+        usingRequirment.data.tools.forEach((tools) => newRequirement.data.tools.push(tools));
+        usingRequirment.data.components.forEach((components) => newRequirement.data.components.push(components));
+      }
+    });
+  }
+
+  return requirmentMultiplier(newRequirement, multiplier ?? 1);
+}
+
+function requirmentMultiplier(requirement: Requirement, multiplier: number) {
+  if (multiplier > 1) {
+    requirement.data.tools.forEach((tools) => tools.forEach((tool) => (tool.data.count *= multiplier)));
+    requirement.data.components.forEach((components) =>
+      components.forEach((component) => (component.data.count *= multiplier))
+    );
+  }
+  return requirement;
 }
