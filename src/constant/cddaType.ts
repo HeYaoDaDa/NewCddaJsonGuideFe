@@ -4,6 +4,7 @@ export enum CddaType {
   item = 'item',
   ammo = 'ammo',
   armor = 'armor',
+  toolArmor = 'tool_armor',
 
   itemCategory = 'item_category',
   proficiency = 'proficiency',

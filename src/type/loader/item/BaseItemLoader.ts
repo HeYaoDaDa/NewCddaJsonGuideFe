@@ -10,11 +10,12 @@ import { JsonItem } from 'src/type/common/baseType';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { ToHit } from 'src/type/loader/item/ToHitLoader';
 import { commonUpdateName, updateNameAndDes } from 'src/util/asyncUpdateName';
-import { getArray, getNumber, getOptionalUnknown, getString } from 'src/util/baseJsonUtil';
+import { getArray, getNumber, getOptionalObject, getOptionalUnknown, getString } from 'src/util/baseJsonUtil';
 import { arrayIsNotEmpty } from 'src/util/commonUtil';
 import { isItem } from 'src/util/dataUtil';
 import { getLength, getOptionalAsyncId, getTranslationString, getVolume, getWeight } from 'src/util/jsonUtil';
 import { h, VNode } from 'vue';
+import { Armor } from './armor/ArmorLoader';
 import {
   assginMaterialsAndMaterialPortionsTotal,
   calcBaseMovesPerAttack,
@@ -32,7 +33,7 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
     const data = this.data;
     result.push(h(BaseItemCard, { cddaData: this }));
     result.push(h(ItemMeleeCard, { cddaData: this }));
-    if (arrayIsNotEmpty(data.pockets))
+    if (arrayIsNotEmpty(data.pockets)) {
       result.push(
         h(MyCard, { label: 'pocket' }, () =>
           data.pockets.map((pocket, i) => {
@@ -42,6 +43,10 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
           })
         )
       );
+    }
+    if (data.armor) {
+      result.push(...data.armor.toView());
+    }
 
     return result;
   }
@@ -103,6 +108,17 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
             return pocketData;
           })
         )))(),
+      (async () => {
+        const armor = new Armor();
+        const armorData = getOptionalObject(jsonObject, 'armor_data');
+        if (jsonItem.type === CddaType.armor || jsonItem.type === CddaType.toolArmor) {
+          await armor.load(jsonItem, jsonItem.content);
+          data.armor = armor;
+        } else if (armorData) {
+          await armor.load(jsonItem, armorData);
+          data.armor = armor;
+        }
+      })(),
       assginMaterialsAndMaterialPortionsTotal(data, jsonObject),
       data.toHit.load(jsonItem, (getOptionalUnknown(jsonObject, 'to_hit') as object) ?? {})
     );
@@ -136,4 +152,5 @@ export interface BaseItemInterface {
   techniques: AsyncId[];
 
   pockets: PocketData[];
+  armor?: Armor;
 }
