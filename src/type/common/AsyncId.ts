@@ -48,3 +48,13 @@ export class AsyncId {
     return await getCddaItemByTypeAndId(this.type, this.value.id);
   }
 }
+
+export async function generateAsyncIds(
+  ids: string[],
+  type: string,
+  asyncUpdateName?: (asyncId: AsyncId) => Promise<void>
+): Promise<AsyncId[]> {
+  const result: AsyncId[] = reactive([]);
+  await Promise.all(ids.map(async (id) => result.push(await AsyncId.new(id, type, asyncUpdateName))));
+  return result;
+}

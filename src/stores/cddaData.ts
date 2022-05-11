@@ -24,11 +24,7 @@ export const useCddaData = defineStore(KEY_CDDA_DATA, {
       });
     },
     addJsonItem(jsonItems: JsonItem[] | JsonItem) {
-      this.addCddaItem(
-        toArray(jsonItems).map((jsonItem) => {
-          return { jsonItem };
-        })
-      );
+      this.addCddaItem(toArray(jsonItems).map((jsonItem) => new CddaItem(jsonItem)));
     },
     clear() {
       console.debug('clear old cdda data');

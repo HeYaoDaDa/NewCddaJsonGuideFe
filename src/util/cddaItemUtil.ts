@@ -1,6 +1,9 @@
 import { getJsonItemListByJsonId } from 'src/api';
+import { loaderFactorys } from 'src/constant/factoryConstant';
 import { useCddaData } from 'src/stores/cddaData';
 import { CddaItem } from 'src/type/common/CddaItem';
+import { Dummy } from 'src/type/loader/baseLoader/DummyLoader';
+import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { arrayIsEmpty, stringIsEmpty } from './commonUtil';
 
 export async function getCddaItemByTypeAndId(jsonType: string, jsonId: string): Promise<CddaItem[]> {
@@ -22,7 +25,11 @@ export async function getCddaItemByTypeAndId(jsonType: string, jsonId: string): 
     }
     cddaData.addJsonItem(jsonItems);
     return jsonItems.map((jsonItem) => {
-      return { jsonItem };
+      return new CddaItem(jsonItem);
     });
   }
+}
+
+export function findLoader(cddaItem: CddaItem): SuperLoader<object> {
+  return loaderFactorys.find((loaderFactory) => loaderFactory.validate(cddaItem))?.getLoader() ?? new Dummy();
 }

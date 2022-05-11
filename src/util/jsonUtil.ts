@@ -1,5 +1,5 @@
 import { AsyncId } from 'src/type/common/AsyncId';
-import { getOptionalString } from './baseJsonUtil';
+import { getArray, getOptionalString } from './baseJsonUtil';
 import { parseLengthToCm, parseTimeToS, parseVolumeToMl, parseWeightToG } from 'src/util/dataUtil';
 import { getGetTextTransationString } from './getTextUtil';
 
@@ -25,6 +25,17 @@ export async function getAsyncId(
   def?: AsyncId
 ): Promise<AsyncId> {
   return (await getOptionalAsyncId(jsonObject, key, type, asyncUpdateName)) ?? def ?? new AsyncId();
+}
+
+export async function getAsyncIds(
+  jsonObject: Record<string, unknown>,
+  key: string,
+  type: string,
+  asyncUpdateName?: (asyncId: AsyncId) => Promise<void>
+): Promise<AsyncId[]> {
+  return await Promise.all(
+    getArray(jsonObject, key, []).map(async (value) => await AsyncId.new(<string>value, type, asyncUpdateName))
+  );
 }
 
 export function getOptionalWeight(jsonObject: Record<string, unknown>, key: string): number | undefined {
