@@ -1,3 +1,6 @@
+import MyCard from 'src/components/cddaItemLoader/MyCard.vue';
+import MyField from 'src/components/cddaItemLoader/MyField.vue';
+import MyText from 'src/components/cddaItemLoader/MyText/MyText.vue';
 import BaseItemCard from 'src/components/loaderView/card/item/BaseItemCard.vue';
 import ItemMeleeCard from 'src/components/loaderView/card/item/ItemMeleeCard.vue';
 import { CddaType } from 'src/constant/cddaType';
@@ -8,6 +11,7 @@ import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { ToHit } from 'src/type/loader/item/ToHitLoader';
 import { commonUpdateName, updateNameAndDes } from 'src/util/asyncUpdateName';
 import { getArray, getNumber, getOptionalUnknown, getString } from 'src/util/baseJsonUtil';
+import { arrayIsNotEmpty } from 'src/util/commonUtil';
 import { isItem } from 'src/util/dataUtil';
 import { getLength, getOptionalAsyncId, getTranslationString, getVolume, getWeight } from 'src/util/jsonUtil';
 import { h, VNode } from 'vue';
@@ -17,6 +21,7 @@ import {
   calcCategory,
   calcLength,
 } from './BaseItemService';
+import { PocketData } from './PocketDataLoader';
 export class BaseItem extends SuperLoader<BaseItemInterface> {
   async doLoad(data: BaseItemInterface, jsonItem: JsonItem): Promise<void> {
     await this.parseJson(data, jsonItem.content as Record<string, unknown>, jsonItem);
@@ -24,8 +29,19 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
 
   toView(): VNode[] {
     const result = new Array<VNode>();
-
-    result.push(h(BaseItemCard, { cddaData: this }), h(ItemMeleeCard, { cddaData: this }));
+    const data = this.data;
+    result.push(h(BaseItemCard, { cddaData: this }));
+    result.push(h(ItemMeleeCard, { cddaData: this }));
+    if (arrayIsNotEmpty(data.pockets))
+      result.push(
+        h(MyCard, { label: 'pocket' }, () =>
+          data.pockets.map((pocket, i) => {
+            const result = [h(MyField, { label: 'SN' }, () => h(MyText, { content: i + 1 }))];
+            result.push(...pocket.toView());
+            return result;
+          })
+        )
+      );
 
     return result;
   }
@@ -79,6 +95,14 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
             async (value) => await AsyncId.new(<string>value, CddaType.technique, updateNameAndDes)
           )
         )))(),
+      (async () =>
+        (data.pockets = await Promise.all(
+          getArray(jsonObject, 'pocket_data').map(async (pocketDataObj) => {
+            const pocketData = new PocketData();
+            await pocketData.load(jsonItem, pocketDataObj as object);
+            return pocketData;
+          })
+        )))(),
       assginMaterialsAndMaterialPortionsTotal(data, jsonObject),
       data.toHit.load(jsonItem, (getOptionalUnknown(jsonObject, 'to_hit') as object) ?? {})
     );
@@ -91,8 +115,6 @@ export interface BaseItemInterface {
   description: string;
   symbol: string;
   color: string;
-
-  // pockets?: PocketData[];
 
   materials: [AsyncId, number][];
   materialPortionsTotal: number;
@@ -112,4 +134,6 @@ export interface BaseItemInterface {
   baseMovesPerAttack: number;
   weaponCategory: AsyncId[];
   techniques: AsyncId[];
+
+  pockets: PocketData[];
 }
