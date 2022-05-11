@@ -1,14 +1,23 @@
 import { AsyncId } from 'src/type/common/AsyncId';
-import { getOptionalUnknown } from './baseJsonUtil';
 import { arrayIsEmpty } from './commonUtil';
-import { getGetTextTransationString } from './getTextUtil';
+import { getTranslationString } from './jsonUtil';
 
 export async function commonUpdateName(asyncId: AsyncId) {
   const cddaItems = await asyncId.getCddaItems();
   if (arrayIsEmpty(cddaItems)) return;
   const json = cddaItems[0].jsonItem.content;
   if ('name' in json) {
-    const nameObject = getOptionalUnknown(json as Record<string, unknown>, 'name');
-    asyncId.value.name = getGetTextTransationString(nameObject);
+    asyncId.value.name = getTranslationString(json as Record<string, unknown>, 'name');
+  }
+}
+
+export async function updateNameAndDes(asyncId: AsyncId) {
+  const cddaItems = await asyncId.getCddaItems();
+  if (arrayIsEmpty(cddaItems)) return;
+  const json = cddaItems[0].jsonItem.content;
+  if ('name' in json && 'description' in json) {
+    const name = getTranslationString(json as Record<string, unknown>, 'name');
+    const description = getTranslationString(json as Record<string, unknown>, 'description');
+    asyncId.value.name = name + ': ' + description;
   }
 }

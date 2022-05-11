@@ -1,9 +1,14 @@
+import BaseItemCard from 'src/components/loaderView/card/item/BaseItemCard.vue';
+import ItemMeleeCard from 'src/components/loaderView/card/item/ItemMeleeCard.vue';
 import { CddaType } from 'src/constant/cddaType';
+import { Flag } from 'src/constant/FlagsContant';
 import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
-import { commonUpdateName } from 'src/util/asyncUpdateName';
-import { getArray, getNumber, getString } from 'src/util/baseJsonUtil';
+import { ToHit } from 'src/type/loader/item/ToHitLoader';
+import { commonUpdateName, updateNameAndDes } from 'src/util/asyncUpdateName';
+import { getArray, getNumber, getOptionalUnknown, getString } from 'src/util/baseJsonUtil';
+import { isItem } from 'src/util/dataUtil';
 import { getLength, getOptionalAsyncId, getTranslationString, getVolume, getWeight } from 'src/util/jsonUtil';
 import { h, VNode } from 'vue';
 import {
@@ -12,9 +17,6 @@ import {
   calcCategory,
   calcLength,
 } from './BaseItemService';
-import BaseItemCard from 'src/components/loaderView/card/item/BaseItemCard.vue';
-import { isItem } from 'src/util/dataUtil';
-
 export class BaseItem extends SuperLoader<BaseItemInterface> {
   async doLoad(data: BaseItemInterface, jsonItem: JsonItem): Promise<void> {
     await this.parseJson(data, jsonItem.content as Record<string, unknown>, jsonItem);
@@ -23,13 +25,21 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
   toView(): VNode[] {
     const result = new Array<VNode>();
 
-    result.push(h(BaseItemCard, { cddaData: this }));
+    result.push(h(BaseItemCard, { cddaData: this }), h(ItemMeleeCard, { cddaData: this }));
 
     return result;
   }
 
   validateValue(jsonItem: JsonItem): boolean {
     return isItem(jsonItem.type);
+  }
+
+  public hasFlag(flag: Flag) {
+    return this.data.flags.some((myflag) => myflag.value.id === flag);
+  }
+
+  public isStab() {
+    return this.hasFlag(Flag.SPEAR) || this.hasFlag(Flag.STAB);
   }
 
   private async parseJson(data: BaseItemInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
@@ -43,6 +53,7 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
     data.baseMovesPerAttack = calcBaseMovesPerAttack(data.volume, data.weight);
     data.bash = getNumber(jsonObject, 'bashing');
     data.cut = getNumber(jsonObject, 'cutting');
+    data.toHit = new ToHit();
 
     const asyncPromises = new Array<Promise<unknown>>();
     asyncPromises.push(
@@ -65,10 +76,11 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
       (async () =>
         (data.techniques = await Promise.all(
           getArray(jsonObject, 'techniques').map(
-            async (value) => await AsyncId.new(<string>value, CddaType.technique, commonUpdateName)
+            async (value) => await AsyncId.new(<string>value, CddaType.technique, updateNameAndDes)
           )
         )))(),
-      assginMaterialsAndMaterialPortionsTotal(data, jsonObject)
+      assginMaterialsAndMaterialPortionsTotal(data, jsonObject),
+      data.toHit.load(jsonItem, (getOptionalUnknown(jsonObject, 'to_hit') as object) ?? {})
     );
     await Promise.allSettled(asyncPromises);
   }
@@ -96,8 +108,8 @@ export interface BaseItemInterface {
   //melee
   bash: number;
   cut: number;
-  // ToHitNum: number;
+  toHit: ToHit;
+  baseMovesPerAttack: number;
   weaponCategory: AsyncId[];
   techniques: AsyncId[];
-  baseMovesPerAttack: number;
 }
