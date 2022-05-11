@@ -6,7 +6,12 @@ import { commonUpdateName } from 'src/util/asyncUpdateName';
 import { getArray, getNumber, getString } from 'src/util/baseJsonUtil';
 import { getLength, getOptionalAsyncId, getTranslationString, getVolume, getWeight } from 'src/util/jsonUtil';
 import { h, VNode } from 'vue';
-import { assginMaterialsAndMaterialPortionsTotal, calcBaseMovesPerAttack, calcCategory } from './BaseItemService';
+import {
+  assginMaterialsAndMaterialPortionsTotal,
+  calcBaseMovesPerAttack,
+  calcCategory,
+  calcLength,
+} from './BaseItemService';
 import BaseItemCard from 'src/components/loaderView/card/item/BaseItemCard.vue';
 import { isItem } from 'src/util/dataUtil';
 
@@ -34,8 +39,8 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
     data.color = getString(jsonObject, 'color');
     data.weight = getWeight(jsonObject, 'weight');
     data.volume = getVolume(jsonObject, 'volume');
+    data.longestSide = getLength(jsonObject, 'longest_side', calcLength(data.volume));
     data.baseMovesPerAttack = calcBaseMovesPerAttack(data.volume, data.weight);
-    data.longestSide = getLength(jsonObject, 'longest_side', -1);
     data.bash = getNumber(jsonObject, 'bashing');
     data.cut = getNumber(jsonObject, 'cutting');
 

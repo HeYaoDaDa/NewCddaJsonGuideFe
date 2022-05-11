@@ -36,3 +36,7 @@ export async function calcCategory(): Promise<AsyncId> {
   //TODO
   return AsyncId.new('other', CddaType.itemCategory, commonUpdateName);
 }
+
+export function calcLength(volume: number): number {
+  return Math.round(Math.cbrt(volume));
+}
