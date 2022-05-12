@@ -4,11 +4,25 @@ import { JsonItem } from 'src/type/common/baseType';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { commonUpdateName } from 'src/util/asyncUpdateName';
 import { getArray, getBoolean, getNumber, getOptionalNumber } from 'src/util/baseJsonUtil';
-import { arrayIsNotEmpty } from 'src/util/commonUtil';
+import { arrayIsEmpty, arrayIsNotEmpty } from 'src/util/commonUtil';
 import { getAsyncIds, getOptionalAsyncId } from 'src/util/jsonUtil';
 import { VNode, h } from 'vue';
 import { ArmorPortion } from './ArmorPortionLoader';
 import ArmorCard from 'src/components/loaderView/card/item/ArmorCard.vue';
+import { ArmorResistInterface, computeArmorResists } from './ArmorResistService';
+import {
+  consolidateSubArmorPotions,
+  inferSubArmorPortionsArmorMaterial,
+  scaleAmalgamizedPortion,
+  setAllLayer,
+  setArmorRigidAndComfortable,
+  setBreathability,
+  setFeetRigid,
+  setNonTraditionalNoRigid,
+  setSubArmorPotionsField,
+  setSubArmorPotionsrRigidComfortable,
+} from './ArmorService';
+import { BaseItem } from '../BaseItemLoader';
 
 export class Armor extends SuperLoader<ArmorInterface> {
   async doLoad(data: ArmorInterface, jsonItem: JsonItem, jsonObject: object): Promise<void> {
@@ -25,6 +39,34 @@ export class Armor extends SuperLoader<ArmorInterface> {
 
   validateValue(jsonItem: JsonItem, jsonObject?: object): boolean {
     return jsonItem.type === CddaType.armor || jsonItem.type === CddaType.toolArmor || jsonObject !== undefined;
+  }
+
+  public async backLoad(jsonItem: JsonItem, item: BaseItem) {
+    const data: ArmorInterface = this.data;
+    await inferSubArmorPortionsArmorMaterial(jsonItem, data.subArmorPortions, item);
+    setSubArmorPotionsField(data.subArmorPortions, item);
+    await setSubArmorPotionsrRigidComfortable(data.subArmorPortions);
+    data.armorPortions = [];
+    await consolidateSubArmorPotions(data.armorPortions, data.subArmorPortions);
+    scaleAmalgamizedPortion(data.armorPortions);
+    data.allLayers = [];
+    await setAllLayer(data.allLayers, data.armorPortions, data.subArmorPortions, item);
+    await setFeetRigid(data.subArmorPortions);
+    setNonTraditionalNoRigid(data.subArmorPortions);
+    setArmorRigidAndComfortable(data);
+    await setBreathability(data.armorPortions);
+    data.armorResists = await computeArmorResists(data.subArmorPortions, this.getAvgEnvironmentalProtection());
+  }
+
+  public getAvgEnvironmentalProtection() {
+    let result = 0;
+    if (arrayIsEmpty(this.data.armorPortions)) {
+      return 0;
+    }
+    this.data.armorPortions.forEach(({ data: armorPortion }) => {
+      result += armorPortion.environmentalProtection;
+    });
+    return Math.round(result / this.data.armorPortions.length);
   }
 
   private async parseJson(data: ArmorInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
@@ -74,7 +116,7 @@ export class Armor extends SuperLoader<ArmorInterface> {
   }
 }
 
-interface ArmorInterface {
+export interface ArmorInterface {
   sided: boolean;
   nonFunctional?: AsyncId;
   warmth: number;
@@ -90,4 +132,6 @@ interface ArmorInterface {
   environmentalProtection?: number;
   environmentalProtectionFilter?: number;
   allLayers: AsyncId[];
+
+  armorResists: ArmorResistInterface[][];
 }

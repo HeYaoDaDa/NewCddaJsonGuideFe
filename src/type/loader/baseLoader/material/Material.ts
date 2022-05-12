@@ -32,6 +32,20 @@ export class Material extends SuperLoader<MaterialInterface> {
     return jsonItem.type === CddaType.material;
   }
 
+  public breathability(): number {
+    return this.breathabilityToNumber(this.data.breathability.raw);
+  }
+
+  private breathabilityToNumber(str: string): number {
+    for (const i in BreathabilityRating) {
+      const isValueProperty = parseInt(i, 10) >= 0;
+      if (!isValueProperty && str === i) {
+        return parseInt(BreathabilityRating[i], 10) ?? 0;
+      }
+    }
+    return 0;
+  }
+
   private async parseJson(data: MaterialInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
     const asyncPromises = new Array<Promise<unknown>>();
 

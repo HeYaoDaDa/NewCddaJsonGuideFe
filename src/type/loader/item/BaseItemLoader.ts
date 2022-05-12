@@ -123,6 +123,7 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
       data.toHit.load(jsonItem, (getOptionalUnknown(jsonObject, 'to_hit') as object) ?? {})
     );
     await Promise.allSettled(asyncPromises);
+    await data.armor?.backLoad(jsonItem, this);
   }
 }
 

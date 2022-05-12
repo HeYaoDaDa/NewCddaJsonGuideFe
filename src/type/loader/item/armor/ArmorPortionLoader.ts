@@ -4,8 +4,10 @@ import { JsonItem } from 'src/type/common/baseType';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { commonUpdateName } from 'src/util/asyncUpdateName';
 import { getBoolean, getNumber, getOptionalNumber } from 'src/util/baseJsonUtil';
+import { arrayIsEmpty, arrayIsNotEmpty } from 'src/util/commonUtil';
 import { getAsyncIds } from 'src/util/jsonUtil';
 import { VNode } from 'vue';
+import { SubBodyPart } from '../../baseLoader/bodyPart/SubBodyPartLoader';
 import { ArmorMaterial } from './ArmorMaterialLoader';
 import { parseArmorMaterial, parseCoversSubBodyParts, parseEncumber } from './ArmorPortionService';
 export class ArmorPortion extends SuperLoader<ArmorPortionInterface> {
@@ -21,6 +23,30 @@ export class ArmorPortion extends SuperLoader<ArmorPortionInterface> {
 
   validateValue(jsonItem: JsonItem, jsonObject?: object): boolean {
     return jsonObject !== undefined;
+  }
+
+  public async maxCoverage(bodyPartId: string): Promise<number> {
+    if (arrayIsEmpty(this.data.coversSubBodyPart)) {
+      return 100;
+    }
+    let primary = 0;
+    let secondary = 0;
+    await Promise.all(
+      this.data.coversSubBodyPart.map(async (subCover) => {
+        const cddaItems = await subCover.getCddaItems();
+        if (arrayIsNotEmpty(cddaItems)) {
+          const subBodyPart = (await cddaItems[0].getData(new SubBodyPart())) as SubBodyPart;
+          if (subBodyPart.data.parent.value.id === bodyPartId) {
+            if (subBodyPart.data.secondary) {
+              secondary += subBodyPart.data.maxCoverage;
+            } else {
+              primary += subBodyPart.data.maxCoverage;
+            }
+          }
+        }
+      })
+    );
+    return primary > secondary ? primary : secondary;
   }
 
   private async parseJson(data: ArmorPortionInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {

@@ -35,6 +35,8 @@ const props = defineProps<{
 dl {
   display: grid;
   grid-template-columns: max-content auto;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 dt {
