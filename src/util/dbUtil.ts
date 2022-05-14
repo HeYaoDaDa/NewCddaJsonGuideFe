@@ -79,6 +79,7 @@ export async function updataCddaGameData(newVersion: string, newLanguage: string
   // need update CddaDate
   cddaData.clear();
   cddaData.addJsonItem(newVersionAllJsonItem);
+  cddaData.isLoad.value = true;
 }
 
 export async function isExitsVersionInDb(newSavedVersion: SavedVersion): Promise<boolean> {

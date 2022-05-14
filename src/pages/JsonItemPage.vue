@@ -64,7 +64,8 @@ watch(
     ],
     set: () => console.error(LOG_NO_CHANGE_COMPUTED),
   }),
-  () => {
+  (newValue, oldValue) => {
+    console.debug('JsonItemPage Watch Trigger new is %o, old is %o', newValue, oldValue);
     void updateCddaItem($route.params.jsonType as string, $route.params.jsonId as string);
   }
 );
