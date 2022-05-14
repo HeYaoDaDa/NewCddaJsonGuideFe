@@ -19,7 +19,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { Loading } from 'quasar';
+import { useQuasar } from 'quasar';
 import { cddaData, initCddaData } from 'src/CddaData';
 import LanguageSelect from 'src/components/leftDrawer/LanguageSelect.vue';
 import VersionSelect from 'src/components/leftDrawer/VersionSelect.vue';
@@ -34,14 +34,15 @@ import ModsSelect from './ModsSelect.vue';
 
 const userConfig = useUserConfigStore();
 const allVersions = reactive([]) as Version[];
+const $q = useQuasar();
 
-Loading.show();
+$q.loading.show();
 updateVersions(allVersions)
   .then(() => initCddaData())
   .then(async () => {
     userConfig.updataAllMods(await getAllModJsonItems());
   })
-  .then(() => Loading.hide());
+  .then(() => $q.loading.hide());
 
 watch(
   computed({
@@ -49,8 +50,7 @@ watch(
     set: () => console.error(LOG_NO_CHANGE_COMPUTED),
   }),
   async (newValue, oldValue) => {
-    Loading.show();
-    cddaData.isLoad = false;
+    $q.loading.show();
     const newLanguage = newValue[0] as string;
     const newVersionId = newValue[1] as string;
     const newModIds = newValue[2] as string[];
@@ -69,8 +69,7 @@ watch(
       // only change mods, only need update
       cddaData.updateMods(newModIds, oldModIds as string[]);
     }
-    cddaData.isLoad = true;
-    Loading.hide();
+    $q.loading.hide();
   }
 );
 </script>

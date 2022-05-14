@@ -1,3 +1,4 @@
+import { reactive, ref } from 'vue';
 import { SavedVersion } from './db';
 import { useUserConfigStore } from './stores/userConfig';
 import { JsonItem } from './type/common/baseType';
@@ -7,12 +8,12 @@ import { arrayIsNotEmpty, arrayPush, toArray } from './util/commonUtil';
 import { getAllJsonItems, isExitsVersionInDb, updataCddaGameData } from './util/dbUtil';
 
 class CddaData {
-  byTypeAndId = new Map<string, Map<string, CddaItem[]>>();
+  byTypeAndId = reactive(new Map<string, Map<string, CddaItem[]>>());
 
-  isLoad = false;
+  isLoad = ref(false);
 
   hasLoad() {
-    return this.isLoad && this.byTypeAndId.size > 0;
+    return this.isLoad.value && this.byTypeAndId.size > 0;
   }
 
   addCddaItem(cddaItems: CddaItem[] | CddaItem) {
@@ -37,7 +38,7 @@ class CddaData {
 
   clear() {
     console.debug('clear old cdda data');
-    this.isLoad = false;
+    this.isLoad.value = false;
     this.byTypeAndId.clear();
   }
 
@@ -107,7 +108,7 @@ export async function initCddaData() {
         userConfig.mods.map((mod) => mod.data.id)
       );
     }
-    cddaData.isLoad = true;
+    cddaData.isLoad.value = true;
   } else {
     console.debug('cddaData is load, no need load, size is %s', cddaData.byTypeAndId.size);
   }
