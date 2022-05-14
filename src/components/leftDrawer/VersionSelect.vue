@@ -2,7 +2,7 @@
   <q-select
     filled
     v-model="selectedGameVersion"
-    :options="options"
+    :options="props.allVersions"
     option-label="tagName"
     :label="$t('label.gameVersion')"
   >
@@ -15,10 +15,9 @@
 </template>
 
 <script lang="ts">
-import { computed, reactive } from 'vue';
 import { useUserConfigStore } from 'src/stores/userConfig';
-import { getVersions } from 'src/api';
 import { Version } from 'src/type';
+import { computed } from 'vue';
 export default {
   name: 'VersionSelect',
   inheritAttrs: false,
@@ -27,7 +26,10 @@ export default {
 </script>
 
 <script setup lang="ts">
-const options = reactive([] as Version[]);
+const props = defineProps<{
+  allVersions: Version[];
+}>();
+
 const userConfig = useUserConfigStore();
 
 const selectedGameVersion = computed({
@@ -35,10 +37,5 @@ const selectedGameVersion = computed({
   set: (val) => {
     userConfig.selectVersion(val);
   },
-});
-
-void getVersions().then((newVersions) => {
-  options.length = 0;
-  options.push(...newVersions);
 });
 </script>

@@ -1,4 +1,4 @@
-import { useCddaData } from 'src/stores/cddaData';
+import { cddaData } from 'src/CddaData';
 import { findLoader } from 'src/util/cddaItemUtil';
 import { SuperLoader } from '../loader/baseLoader/SuperLoader';
 import { JsonItem } from './baseType';
@@ -17,7 +17,6 @@ export class CddaItem {
       await myLoader.load(this.jsonItem);
     }
     if (!this.data) {
-      const cddaData = useCddaData();
       cddaData.addLoaderByJsonItem(this.jsonItem, myLoader);
       this.data = myLoader;
     }
