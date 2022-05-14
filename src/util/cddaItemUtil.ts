@@ -1,4 +1,3 @@
-import { getJsonItemListByJsonId } from 'src/api';
 import { itemTypes } from 'src/constant/dataConstant';
 import { loaderFactorys } from 'src/constant/factoryConstant';
 import { useCddaData } from 'src/stores/cddaData';
@@ -6,6 +5,7 @@ import { CddaItem } from 'src/type/common/CddaItem';
 import { Dummy } from 'src/type/loader/baseLoader/DummyLoader';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { arrayIsEmpty, arrayIsNotEmpty, stringIsEmpty } from './commonUtil';
+import { getJsonItemListByTypeAndJsonId } from './dbUtil';
 
 export async function getCddaItemByTypeAndId(jsonType: string, jsonId: string): Promise<CddaItem[]> {
   if (stringIsEmpty(jsonType) || stringIsEmpty(jsonId)) {
@@ -35,7 +35,7 @@ function getCddaItemsByTypeAndId(jsonType: string, jsonId: string): CddaItem[] {
 
 async function fetchCddaItemsByTypeAndId(jsonType: string, jsonId: string): Promise<CddaItem[]> {
   const cddaData = useCddaData();
-  const jsonItems = await getJsonItemListByJsonId(jsonType, jsonId);
+  const jsonItems = await getJsonItemListByTypeAndJsonId(jsonType, jsonId);
   if (arrayIsEmpty(jsonItems)) {
     console.debug(`getJsonItemListByJsonId result is empty, Type is ${jsonType}, Id is ${jsonId}`);
     return [];
@@ -51,7 +51,7 @@ export function findLoader(cddaItem: CddaItem): SuperLoader<object> {
   return loaderFactorys.find((loaderFactory) => loaderFactory.validate(cddaItem))?.getLoader() ?? new Dummy();
 }
 
-function convertType(type: string): string[] {
+export function convertType(type: string): string[] {
   if (type === 'item') {
     return itemTypes;
   } else {

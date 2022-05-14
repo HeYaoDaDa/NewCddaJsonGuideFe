@@ -15,7 +15,6 @@ export interface JsonItem {
   _id: string;
   jsonId: string;
   type: string;
-  isOriginal: boolean;
   startVersion: Version;
   endVersion: Version;
   language: string;
