@@ -9,6 +9,7 @@ export enum CddaType {
   mutation = 'mutation',
   spell = 'spell',
   field = 'field_type',
+  ammunitionType = 'ammunition_type',
 
   itemCategory = 'item_category',
   proficiency = 'proficiency',
