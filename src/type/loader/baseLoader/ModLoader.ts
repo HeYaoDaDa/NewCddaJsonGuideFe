@@ -1,4 +1,5 @@
 import { CddaType } from 'src/constant/cddaType';
+import { useUserConfigStore } from 'src/stores/userConfig';
 import { JsonItem } from 'src/type/common/baseType';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { getTranslationString } from 'src/util/jsonUtil';
@@ -22,4 +23,9 @@ export class Mod extends SuperLoader<ModInterface> {
 interface ModInterface {
   id: string;
   name: string;
+}
+
+export function getModById(id: string): Mod {
+  const userConfig = useUserConfigStore();
+  return userConfig.mods.find((mod) => mod.data.id === id) as Mod;
 }

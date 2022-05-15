@@ -1,15 +1,13 @@
 <template>
   <my-card width="-webkit-fill-available">
     <template v-slot:befor>
-      <p :class="['text-weight-bold text-h4']">
-        <span :style="{ color: data.color }">{{ data.symbol }}</span>
-
-        <span>{{ data.name }}</span>
-
-        <q-badge>{{ props.cddaData.jsonItem?.mod }}</q-badge>
-      </p>
-
-      <my-text :content="data.description" />
+      <symbol-name-bar
+        :name="data.name"
+        :description="data.description"
+        :symbol="data.symbol"
+        :color="data.color"
+        :modId="props.cddaData.jsonItem?.mod ?? 'dda'"
+      />
     </template>
 
     <my-field label="material" v-if="arrayIsNotEmpty(data.materials)" ul>
@@ -58,6 +56,7 @@ import { BaseItem } from 'src/type/loader/item/BaseItemLoader';
 import { arrayIsNotEmpty, toArray } from 'src/util/commonUtil';
 import { lengthToString, volumeToString, weightToString } from 'src/util/dataUtil';
 import { reactive } from 'vue';
+import SymbolNameBar from '../../SymbolNameBar.vue';
 const props = defineProps<{
   cddaData: BaseItem;
 }>();
