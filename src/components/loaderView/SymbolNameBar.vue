@@ -1,13 +1,13 @@
 <template>
   <p :class="['text-weight-bold', 'text-h3']">
-    <span :style="{ color: props.color }">{{ props.symbol + '  ' }}</span>
+    <span v-if="props.symbol && props.color" :style="{ color: props.color }">{{ props.symbol + '  ' }}</span>
 
     <span>{{ props.name }}</span>
 
     <q-badge :class="['text-weight-bold', 'text-h6']">{{ mod.data.name }}</q-badge>
   </p>
 
-  <my-text :content="props.description" />
+  <my-text v-if="props.description" :content="props.description" />
 </template>
 
 <script lang="ts">
@@ -23,10 +23,10 @@ import MyText from 'src/components/cddaItemLoader/MyText/MyText.vue';
 import { getModById } from 'src/type/loader/baseLoader/ModLoader';
 const props = defineProps<{
   name: string;
-  description: string;
+  description?: string;
   modId: string;
-  symbol: string;
-  color: string;
+  symbol?: string;
+  color?: string;
 }>();
 const mod = getModById(props.modId);
 </script>

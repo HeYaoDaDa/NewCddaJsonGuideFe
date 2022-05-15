@@ -21,6 +21,7 @@ function getCddaItemsByTypesAndId(jsonTypes: string[], jsonId: string): CddaItem
 }
 
 function getCddaItemsByTypeAndId(jsonType: string, jsonId: string): CddaItem[] {
+  console.debug('getCddaItemsByTypeAndId', jsonType, jsonId, cddaData.byTypeAndId.get(jsonType));
   if (cddaData.byTypeAndId.get(jsonType)?.has(jsonId)) {
     return cddaData.byTypeAndId.get(jsonType)?.get(jsonId) ?? [];
   }
