@@ -41,28 +41,29 @@ export function parseSkillRequire(jsonObject: Record<string, unknown>) {
 export function parseBookLearn(jsonObject: Record<string, unknown>) {
   const bookLearnJson = getOptionalUnknown(jsonObject, 'book_learn') as
     | undefined
-    | Map<string, BookLearnJson>
-    | [string, number][];
+    | Record<string, BookLearnJson>
+    | [string, number | undefined][];
   const bookLearn: { book: CddaItemRef; level: number; name: string | undefined; hidden: boolean }[] = [];
   if (bookLearnJson !== undefined) {
     if (Array.isArray(bookLearnJson)) {
       bookLearnJson.forEach((bookLearnTuple) =>
         bookLearn.push({
           book: CddaItemRef.new(bookLearnTuple[0], CddaType.item, commonUpdateName),
-          level: bookLearnTuple[1],
+          level: bookLearnTuple[1] ?? -1,
           name: undefined,
           hidden: false,
         })
       );
     } else {
-      bookLearnJson.forEach((bookLearnObject, bookId) =>
+      for (const bookId in bookLearnJson) {
+        const bookLearnObject = bookLearnJson[bookId];
         bookLearn.push({
           book: CddaItemRef.new(bookId, CddaType.item, commonUpdateName),
           level: bookLearnObject.skill_level,
           name: bookLearnObject.recipe_name,
           hidden: bookLearnObject.hidden ?? false,
-        })
-      );
+        });
+      }
     }
   }
   return bookLearn;

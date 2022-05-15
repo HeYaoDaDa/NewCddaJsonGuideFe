@@ -22,12 +22,14 @@ import {
 } from 'src/util/jsonUtil';
 import { commonUpdateName, updateNameAndDes } from 'src/util/updateNameUtil';
 import { h, VNode } from 'vue';
+import { Recipe } from '../recipe/RecipeLoader';
 import { Armor } from './armor/ArmorLoader';
 import {
   assginMaterialsAndMaterialPortionsTotal,
   calcBaseMovesPerAttack,
   calcCategory,
   calcLength,
+  getAllRecipe,
 } from './BaseItemService';
 import { PocketData } from './PocketDataLoader';
 export class BaseItem extends SuperLoader<BaseItemInterface> {
@@ -47,6 +49,9 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
     }
     if (data.armor) {
       result.push(...data.armor.toView());
+    }
+    if (arrayIsNotEmpty(data.recipes)) {
+      data.recipes.forEach((recipe) => result.push(...recipe.toView()));
     }
   }
 
@@ -102,6 +107,7 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
     assginMaterialsAndMaterialPortionsTotal(data, jsonObject);
     data.toHit.load(jsonItem, (getOptionalUnknown(jsonObject, 'to_hit') as object) ?? {});
     data.armor?.backLoad(jsonItem, this);
+    data.recipes = getAllRecipe(jsonItem.jsonId);
   }
 }
 
@@ -132,4 +138,5 @@ export interface BaseItemInterface {
 
   pockets: PocketData[];
   armor?: Armor;
+  recipes: Recipe[];
 }

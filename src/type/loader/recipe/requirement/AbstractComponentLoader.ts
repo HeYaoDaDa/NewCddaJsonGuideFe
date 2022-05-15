@@ -9,8 +9,8 @@ import { h, VNode } from 'vue';
 import { SuperLoader } from '../../baseLoader/SuperLoader';
 
 export abstract class AbstractComponent extends SuperLoader<AbstractComponentInterface> {
-  async doLoad(data: AbstractComponentInterface, jsonItem: JsonItem, jsonObject: object): Promise<void> {
-    await this.parseJson(data, jsonObject as [string, number, string | undefined]);
+  doLoad(data: AbstractComponentInterface, jsonItem: JsonItem, jsonObject: object): void {
+    this.parseJson(data, jsonObject as [string, number, string | undefined]);
   }
 
   doToView(result: VNode[], data: AbstractComponentInterface): void {
@@ -43,7 +43,7 @@ export abstract class AbstractComponent extends SuperLoader<AbstractComponentInt
     return jsonObject !== undefined;
   }
 
-  private async parseJson(data: AbstractComponentInterface, jsonObject: [string, number, string | undefined]) {
+  private parseJson(data: AbstractComponentInterface, jsonObject: [string, number, string | undefined]) {
     data.count = jsonObject[1];
     const flag = jsonObject[2];
     if (flag) {
@@ -53,7 +53,7 @@ export abstract class AbstractComponent extends SuperLoader<AbstractComponentInt
       data.requirement = false;
       data.noRecoverable = false;
     }
-    data.name = await CddaItemRef.new(
+    data.name = CddaItemRef.new(
       jsonObject[0],
       data.requirement ? CddaType.requirement : CddaType.item,
       data.requirement ? undefined : commonUpdateName

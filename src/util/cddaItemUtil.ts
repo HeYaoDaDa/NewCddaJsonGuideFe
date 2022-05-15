@@ -27,6 +27,15 @@ function getCddaItemsByTypeAndId(jsonType: string, jsonId: string): CddaItem[] {
   return [];
 }
 
+export function getCddaItemsByType(jsonType: string): CddaItem[] {
+  const typeMap = cddaData.byTypeAndId.get(jsonType);
+  const result: CddaItem[] = [];
+  if (typeMap) {
+    typeMap.forEach((cddaItems) => result.push(...cddaItems));
+  }
+  return result;
+}
+
 export function findLoader(cddaItem: CddaItem): SuperLoader<object> {
   return loaderFactorys.find((loaderFactory) => loaderFactory.validate(cddaItem))?.getLoader() ?? new Dummy();
 }

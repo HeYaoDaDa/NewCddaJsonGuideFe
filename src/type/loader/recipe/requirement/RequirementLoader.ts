@@ -70,7 +70,7 @@ export function normalizeRequirmentInterface(
 ): Requirement {
   const newRequirement = cloneObject(requirement);
 
-  const myUsings = usings ?? new Array<{ requirment: CddaItemRef; count: number }>();
+  const myUsings: Array<{ requirment: CddaItemRef; count: number }> = usings ?? [];
 
   [newRequirement.data.tools, newRequirement.data.components].forEach((componentListList) => {
     componentListList.forEach((components) =>
@@ -96,11 +96,15 @@ export function normalizeRequirmentInterface(
 
   if (arrayIsNotEmpty(myUsings)) {
     const usingRequirments = myUsings.map((using) => {
-      const requirmentJsonItems = using.requirment.getCddaItems();
-      if (arrayIsNotEmpty(requirmentJsonItems)) {
-        const usingRequirement = new Requirement();
-        usingRequirement.load(requirmentJsonItems[0].jsonItem);
-        return normalizeRequirmentInterface(usingRequirement, using.count);
+      if (using.requirment !== undefined) {
+        const requirmentJsonItems = using.requirment.getCddaItems();
+        if (arrayIsNotEmpty(requirmentJsonItems)) {
+          const usingRequirement = new Requirement();
+          usingRequirement.load(requirmentJsonItems[0].jsonItem);
+          return normalizeRequirmentInterface(usingRequirement, using.count);
+        }
+      } else {
+        console.warn('wrong requirement', requirement);
       }
       return undefined;
     });
