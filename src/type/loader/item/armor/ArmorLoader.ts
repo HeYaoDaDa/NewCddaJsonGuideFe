@@ -1,14 +1,15 @@
+import ArmorCard from 'src/components/loaderView/card/item/ArmorCard.vue';
 import { CddaType } from 'src/constant/cddaType';
-import { AsyncId, generateAsyncIds } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
+import { CddaItemRef, generateCddaItemRefs } from 'src/type/common/CddaItemRef';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
-import { commonUpdateName } from 'src/util/asyncUpdateName';
 import { getArray, getBoolean, getNumber, getOptionalNumber } from 'src/util/baseJsonUtil';
 import { arrayIsEmpty, arrayIsNotEmpty } from 'src/util/commonUtil';
-import { getAsyncIds, getOptionalAsyncId } from 'src/util/jsonUtil';
-import { VNode, h } from 'vue';
+import { getCddaItemRefs, getOptionalCddaItemRef } from 'src/util/jsonUtil';
+import { commonUpdateName } from 'src/util/updateNameUtil';
+import { h, VNode } from 'vue';
+import { BaseItem } from '../BaseItemLoader';
 import { ArmorPortion } from './ArmorPortionLoader';
-import ArmorCard from 'src/components/loaderView/card/item/ArmorCard.vue';
 import { ArmorResistInterface, computeArmorResists } from './ArmorResistService';
 import {
   consolidateSubArmorPotions,
@@ -22,40 +23,35 @@ import {
   setSubArmorPotionsField,
   setSubArmorPotionsrRigidComfortable,
 } from './ArmorService';
-import { BaseItem } from '../BaseItemLoader';
 
 export class Armor extends SuperLoader<ArmorInterface> {
-  async doLoad(data: ArmorInterface, jsonItem: JsonItem, jsonObject: object): Promise<void> {
-    await this.parseJson(data, jsonObject as Record<string, unknown>, jsonItem);
+  doLoad(data: ArmorInterface, jsonItem: JsonItem, jsonObject: object): void {
+    this.parseJson(data, jsonObject as Record<string, unknown>, jsonItem);
   }
 
-  toView(): VNode[] {
-    const result = new Array<VNode>();
-
+  doToView(result: VNode[]): void {
     result.push(h(ArmorCard, { cddaData: this }));
-
-    return result;
   }
 
   validateValue(jsonItem: JsonItem, jsonObject?: object): boolean {
     return jsonItem.type === CddaType.armor || jsonItem.type === CddaType.toolArmor || jsonObject !== undefined;
   }
 
-  public async backLoad(jsonItem: JsonItem, item: BaseItem) {
+  public backLoad(jsonItem: JsonItem, item: BaseItem) {
     const data: ArmorInterface = this.data;
-    await inferSubArmorPortionsArmorMaterial(jsonItem, data.subArmorPortions, item);
+    inferSubArmorPortionsArmorMaterial(jsonItem, data.subArmorPortions, item);
     setSubArmorPotionsField(data.subArmorPortions, item);
-    await setSubArmorPotionsrRigidComfortable(data.subArmorPortions);
+    setSubArmorPotionsrRigidComfortable(data.subArmorPortions);
     data.armorPortions = [];
-    await consolidateSubArmorPotions(data.armorPortions, data.subArmorPortions);
+    consolidateSubArmorPotions(data.armorPortions, data.subArmorPortions);
     scaleAmalgamizedPortion(data.armorPortions);
     data.allLayers = [];
-    await setAllLayer(data.allLayers, data.armorPortions, data.subArmorPortions, item);
-    await setFeetRigid(data.subArmorPortions);
+    setAllLayer(data.allLayers, data.armorPortions, data.subArmorPortions, item);
+    setFeetRigid(data.subArmorPortions);
     setNonTraditionalNoRigid(data.subArmorPortions);
     setArmorRigidAndComfortable(data);
-    await setBreathability(data.armorPortions);
-    data.armorResists = await computeArmorResists(data.subArmorPortions, this.getAvgEnvironmentalProtection());
+    setBreathability(data.armorPortions);
+    data.armorResists = computeArmorResists(data.subArmorPortions, this.getAvgEnvironmentalProtection());
   }
 
   public getAvgEnvironmentalProtection() {
@@ -69,7 +65,7 @@ export class Armor extends SuperLoader<ArmorInterface> {
     return Math.round(result / this.data.armorPortions.length);
   }
 
-  private async parseJson(data: ArmorInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
+  private parseJson(data: ArmorInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
     data.materialThickness = getOptionalNumber(jsonObject, 'material_thickness');
 
     data.environmentalProtection = getOptionalNumber(jsonObject, 'environmental_protection');
@@ -80,29 +76,17 @@ export class Armor extends SuperLoader<ArmorInterface> {
     data.weightCapacityModifier = getNumber(jsonObject, 'weight_capacity_modifier', 1);
     data.weightCapacityBonus = getNumber(jsonObject, 'weight_capacity_bonus', 0);
     data.powerArmor = getBoolean(jsonObject, 'power_armor', false);
+    data.nonFunctional = getOptionalCddaItemRef(jsonObject, 'non_functional', CddaType.item);
+    data.validMods = generateCddaItemRefs(getArray(jsonObject, 'valid_mods', []) as string[], CddaType.item);
+    assginArmorPortions();
 
-    const asyncPromises = new Array<Promise<unknown>>();
-    asyncPromises.push(
-      assginArmorPortions(),
-      (async () => (data.nonFunctional = await getOptionalAsyncId(jsonObject, 'non_functional', CddaType.item)))(),
-      (async () =>
-        (data.validMods = await generateAsyncIds(getArray(jsonObject, 'valid_mods', []) as string[], CddaType.item)))()
-    );
-    await Promise.allSettled(asyncPromises);
-
-    async function assginArmorPortions() {
-      let covers: AsyncId[];
-      await Promise.all([
-        (async () =>
-          (data.subArmorPortions = await Promise.all(
-            getArray(jsonObject, 'armor', []).map((armorObject) => {
-              const armorPortion = new ArmorPortion();
-              armorPortion.load(jsonItem, armorObject as object);
-              return armorPortion;
-            })
-          )))(),
-        (async () => (covers = await getAsyncIds(jsonObject, 'covers', CddaType.bodyPart, commonUpdateName)))(),
-      ]);
+    function assginArmorPortions() {
+      const covers: CddaItemRef[] = getCddaItemRefs(jsonObject, 'covers', CddaType.bodyPart, commonUpdateName);
+      data.subArmorPortions = getArray(jsonObject, 'armor', []).map((armorObject) => {
+        const armorPortion = new ArmorPortion();
+        armorPortion.load(jsonItem, armorObject as object);
+        return armorPortion;
+      });
       data.subArmorPortions.forEach((subArmorPortion) => {
         if (data.materialThickness) subArmorPortion.data.avgThickness = data.materialThickness;
         if (data.environmentalProtection) subArmorPortion.data.environmentalProtection = data.environmentalProtection;
@@ -118,7 +102,7 @@ export class Armor extends SuperLoader<ArmorInterface> {
 
 export interface ArmorInterface {
   sided: boolean;
-  nonFunctional?: AsyncId;
+  nonFunctional?: CddaItemRef;
   warmth: number;
   weightCapacityModifier: number;
   weightCapacityBonus: number;
@@ -127,11 +111,11 @@ export interface ArmorInterface {
   subArmorPortions: ArmorPortion[];
   rigid: boolean;
   comfortable: boolean;
-  validMods: AsyncId[];
+  validMods: CddaItemRef[];
   materialThickness?: number;
   environmentalProtection?: number;
   environmentalProtectionFilter?: number;
-  allLayers: AsyncId[];
+  allLayers: CddaItemRef[];
 
   armorResists: ArmorResistInterface[][];
 }

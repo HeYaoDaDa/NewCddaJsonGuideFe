@@ -37,7 +37,7 @@ async function updateCddaItem(jsonType: string, jsonId: string) {
   let loadingConsole = !$q.loading.isActive;
   if (loadingConsole) $q.loading.show();
   if (cddaData.hasLoad()) {
-    const newCddaItems = await getCddaItemByTypeAndId(jsonType, jsonId);
+    const newCddaItems = getCddaItemByTypeAndId(jsonType, jsonId);
     cddaItems.splice(0, cddaItems.length, ...newCddaItems);
     await loadCddaItems(cddaItems);
   }

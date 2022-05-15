@@ -6,7 +6,7 @@ import { Dummy } from 'src/type/loader/baseLoader/DummyLoader';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { stringIsEmpty } from './commonUtil';
 
-export async function getCddaItemByTypeAndId(jsonType: string, jsonId: string): Promise<CddaItem[]> {
+export function getCddaItemByTypeAndId(jsonType: string, jsonId: string): CddaItem[] {
   if (stringIsEmpty(jsonType) || stringIsEmpty(jsonId)) {
     return [];
   }

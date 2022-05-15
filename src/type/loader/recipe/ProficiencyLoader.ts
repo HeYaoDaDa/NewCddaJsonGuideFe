@@ -1,37 +1,31 @@
 import ProficiencyCard from 'src/components/loaderView/card/recipe/ProficiencyCard.vue';
 import { CddaType } from 'src/constant/cddaType';
-import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 import { Translation } from 'src/type/common/Translation';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
-import { commonUpdateName } from 'src/util/asyncUpdateName';
 import { getArray, getBoolean, getNumber, getOptionalUnknown } from 'src/util/baseJsonUtil';
 import { toArray } from 'src/util/commonUtil';
 import { getTime, getTranslationString } from 'src/util/jsonUtil';
+import { commonUpdateName } from 'src/util/updateNameUtil';
 import { h, VNode } from 'vue';
 
 export class Proficiency extends SuperLoader<ProficiencyInterface> {
-  async doLoad(data: ProficiencyInterface, jsonItem: JsonItem): Promise<void> {
-    await this.parseJson(data, jsonItem.content as Record<string, unknown>);
-  }
-
-  toView(): VNode[] {
-    const result = new Array<VNode>();
-
+  doToView(result: VNode[]): void {
     if (this.isLoad && this.jsonItem) {
       result.push(h(ProficiencyCard, { cddaData: this }));
     }
+  }
 
-    return result;
+  doLoad(data: ProficiencyInterface, jsonItem: JsonItem): void {
+    this.parseJson(data, jsonItem.content as Record<string, unknown>);
   }
 
   validateValue(jsonItem: JsonItem): boolean {
     return jsonItem.type === CddaType.proficiency;
   }
 
-  private async parseJson(data: ProficiencyInterface, jsonObject: Record<string, unknown>) {
-    const asyncPromises = new Array<Promise<unknown>>();
-
+  private parseJson(data: ProficiencyInterface, jsonObject: Record<string, unknown>) {
     data.name = getTranslationString(jsonObject, 'name');
     data.description = getTranslationString(jsonObject, 'description');
 
@@ -45,14 +39,10 @@ export class Proficiency extends SuperLoader<ProficiencyInterface> {
     data.defaultWeakpointPenalty = getNumber(jsonObject, 'default_weakpoint_penalty');
 
     data.learnTime = getTime(jsonObject, 'time_to_learn', 9999 * 60 * 60);
-    asyncPromises.push(
-      (async () =>
-        (data.required = await Promise.all(
-          getArray(jsonObject, 'required_proficiencies').map(async (required) => {
-            return await AsyncId.new(required as string, CddaType.proficiency, commonUpdateName);
-          })
-        )))()
-    );
+
+    data.required = getArray(jsonObject, 'required_proficiencies').map((required) => {
+      return CddaItemRef.new(required as string, CddaType.proficiency, commonUpdateName);
+    });
 
     data.bonuses = [];
     const bonusesObject = getOptionalUnknown(jsonObject, 'bonuses');
@@ -70,8 +60,6 @@ export class Proficiency extends SuperLoader<ProficiencyInterface> {
         });
       }
     }
-
-    await Promise.allSettled(asyncPromises);
   }
 }
 
@@ -89,7 +77,7 @@ interface ProficiencyInterface {
   defaultWeakpointPenalty: number;
 
   learnTime: number;
-  required: AsyncId[];
+  required: CddaItemRef[];
 
   bonuses: { key: string; bonuses: { type: Translation; value: number }[] }[];
 }

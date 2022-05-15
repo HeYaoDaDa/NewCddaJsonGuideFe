@@ -1,41 +1,39 @@
-import { AsyncId } from 'src/type/common/AsyncId';
-import { getArray, getOptionalString } from './baseJsonUtil';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 import { parseLengthToCm, parseTimeToS, parseVolumeToMl, parseWeightToG } from 'src/util/dataUtil';
+import { getArray, getOptionalString } from './baseJsonUtil';
 import { getGetTextTransationString } from './getTextUtil';
 
-export async function getOptionalAsyncId(
+export function getOptionalCddaItemRef(
   jsonObject: Record<string, unknown>,
   key: string,
   type: string,
-  asyncUpdateName?: (asyncId: AsyncId) => Promise<void>
-): Promise<AsyncId | undefined> {
+  updateNameFunc?: (cddaItemRef: CddaItemRef) => void
+): CddaItemRef | undefined {
   const field = getOptionalString(jsonObject, key);
   if (field) {
-    return AsyncId.new(field, type, asyncUpdateName);
+    return CddaItemRef.new(field, type, updateNameFunc);
   } else {
     return undefined;
   }
 }
 
-export async function getAsyncId(
+export function getCddaItemRef(
   jsonObject: Record<string, unknown>,
   key: string,
   type: string,
-  asyncUpdateName?: (asyncId: AsyncId) => Promise<void>,
-  def?: AsyncId
-): Promise<AsyncId> {
-  return (await getOptionalAsyncId(jsonObject, key, type, asyncUpdateName)) ?? def ?? new AsyncId();
+  updateNameFunc?: (cddaItemRef: CddaItemRef) => void,
+  def?: CddaItemRef
+): CddaItemRef {
+  return getOptionalCddaItemRef(jsonObject, key, type, updateNameFunc) ?? def ?? new CddaItemRef();
 }
 
-export async function getAsyncIds(
+export function getCddaItemRefs(
   jsonObject: Record<string, unknown>,
   key: string,
   type: string,
-  asyncUpdateName?: (asyncId: AsyncId) => Promise<void>
-): Promise<AsyncId[]> {
-  return await Promise.all(
-    getArray(jsonObject, key, []).map(async (value) => await AsyncId.new(<string>value, type, asyncUpdateName))
-  );
+  updateNameFunc?: (cddaItemRef: CddaItemRef) => void
+): CddaItemRef[] {
+  return getArray(jsonObject, key, []).map((value) => CddaItemRef.new(<string>value, type, updateNameFunc));
 }
 
 export function getOptionalWeight(jsonObject: Record<string, unknown>, key: string): number | undefined {

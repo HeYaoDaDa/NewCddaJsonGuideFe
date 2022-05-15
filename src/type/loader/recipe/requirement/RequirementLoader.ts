@@ -1,8 +1,8 @@
 import MyCard from 'src/components/cddaItemLoader/MyCard.vue';
 import RequirementFieldSet from 'src/components/loaderView/card/recipe/RequirementFieldSet.vue';
 import { CddaType } from 'src/constant/cddaType';
-import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 import { getArray } from 'src/util/baseJsonUtil';
 import { cloneObject } from 'src/util/cloneObject';
 import { arrayIsNotEmpty, toArray } from 'src/util/commonUtil';
@@ -13,79 +13,47 @@ import { RequirementQualitie } from './RequirementQualitieLoader';
 import { ToolComponent } from './ToolComponentLoader';
 
 export class Requirement extends SuperLoader<RequirementInterface> {
-  async doLoad(data: RequirementInterface, jsonItem: JsonItem, jsonObject?: object): Promise<void> {
-    await this.parseJson(data, (jsonObject ? jsonObject : jsonItem.content) as Record<string, unknown>, jsonItem);
-  }
-
-  toView() {
-    const vNodes = new Array<VNode>();
-
+  doToView(result: VNode[]): void {
     const fieldSet = h(RequirementFieldSet, { cddaData: this });
     if (this.jsonObject) {
-      vNodes.push(fieldSet);
+      result.push(fieldSet);
     } else {
-      vNodes.push(h(MyCard, { label: 'requirement' }, () => fieldSet));
+      result.push(h(MyCard, { label: 'requirement' }, () => fieldSet));
     }
+  }
 
-    return vNodes;
+  doLoad(data: RequirementInterface, jsonItem: JsonItem, jsonObject?: object): void {
+    this.parseJson(data, (jsonObject ? jsonObject : jsonItem.content) as Record<string, unknown>, jsonItem);
   }
 
   validateValue(jsonItem: JsonItem, jsonObject?: object): boolean {
     return jsonItem.type === CddaType.requirement || jsonObject !== undefined;
   }
 
-  private async parseJson(data: RequirementInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
-    const asyncPromises = new Array<Promise<unknown>>();
-
-    asyncPromises.push(
-      (async () =>
-        (data.qualities = await Promise.all(
-          getArray(jsonObject, 'qualities').map(
-            async (qualitieObjects) =>
-              await Promise.all(
-                toArray(qualitieObjects).map(async (qualitieObject) => {
-                  const qualitie = new RequirementQualitie();
-                  await qualitie.load(jsonItem, qualitieObject as object);
-                  return qualitie;
-                })
-              )
-          )
-        )))()
+  private parseJson(data: RequirementInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
+    data.qualities = getArray(jsonObject, 'qualities').map((qualitieObjects) =>
+      toArray(qualitieObjects).map((qualitieObject) => {
+        const qualitie = new RequirementQualitie();
+        qualitie.load(jsonItem, qualitieObject as object);
+        return qualitie;
+      })
     );
 
-    asyncPromises.push(
-      (async () =>
-        (data.tools = await Promise.all(
-          getArray(jsonObject, 'tools').map(
-            async (toolObjects) =>
-              await Promise.all(
-                toArray(toolObjects).map(async (toolObject) => {
-                  const tool = new ToolComponent();
-                  await tool.load(jsonItem, toolObject as object);
-                  return tool;
-                })
-              )
-          )
-        )))()
+    data.tools = getArray(jsonObject, 'tools').map((toolObjects) =>
+      toArray(toolObjects).map((toolObject) => {
+        const tool = new ToolComponent();
+        tool.load(jsonItem, toolObject as object);
+        return tool;
+      })
     );
 
-    asyncPromises.push(
-      (async () =>
-        (data.components = await Promise.all(
-          getArray(jsonObject, 'components').map(
-            async (componentObjects) =>
-              await Promise.all(
-                toArray(componentObjects).map(async (componentObject) => {
-                  const component = new ItemComponent();
-                  await component.load(jsonItem, componentObject as object);
-                  return component;
-                })
-              )
-          )
-        )))()
+    data.components = getArray(jsonObject, 'components').map((componentObjects) =>
+      toArray(componentObjects).map((componentObject) => {
+        const component = new ItemComponent();
+        component.load(jsonItem, componentObject as object);
+        return component;
+      })
     );
-
-    await Promise.allSettled(asyncPromises);
   }
 }
 
@@ -95,14 +63,14 @@ interface RequirementInterface {
   components: Array<Array<ItemComponent>>;
 }
 
-export async function normalizeRequirmentInterface(
+export function normalizeRequirmentInterface(
   requirement: Requirement,
   multiplier?: number,
-  usings?: { requirment: AsyncId; count: number }[]
-): Promise<Requirement> {
+  usings?: { requirment: CddaItemRef; count: number }[]
+): Requirement {
   const newRequirement = cloneObject(requirement);
 
-  const myUsings = usings ?? new Array<{ requirment: AsyncId; count: number }>();
+  const myUsings = usings ?? new Array<{ requirment: CddaItemRef; count: number }>();
 
   [newRequirement.data.tools, newRequirement.data.components].forEach((componentListList) => {
     componentListList.forEach((components) =>
@@ -127,17 +95,15 @@ export async function normalizeRequirmentInterface(
   });
 
   if (arrayIsNotEmpty(myUsings)) {
-    const usingRequirments = await Promise.all(
-      myUsings.map(async (using) => {
-        const requirmentJsonItems = await using.requirment.getCddaItems();
-        if (arrayIsNotEmpty(requirmentJsonItems)) {
-          const usingRequirement = new Requirement();
-          await usingRequirement.load(requirmentJsonItems[0].jsonItem);
-          return await normalizeRequirmentInterface(usingRequirement, using.count);
-        }
-        return undefined;
-      })
-    );
+    const usingRequirments = myUsings.map((using) => {
+      const requirmentJsonItems = using.requirment.getCddaItems();
+      if (arrayIsNotEmpty(requirmentJsonItems)) {
+        const usingRequirement = new Requirement();
+        usingRequirement.load(requirmentJsonItems[0].jsonItem);
+        return normalizeRequirmentInterface(usingRequirement, using.count);
+      }
+      return undefined;
+    });
 
     usingRequirments.forEach((usingRequirment) => {
       if (usingRequirment) {

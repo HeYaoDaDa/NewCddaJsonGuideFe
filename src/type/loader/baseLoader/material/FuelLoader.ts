@@ -1,52 +1,43 @@
+import FuelFieldSet from 'src/components/loaderView/card/material/FuelFieldSet.vue';
+import { CddaType } from 'src/constant/cddaType';
 import { JsonItem } from 'src/type/common/baseType';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { getBoolean, getNumber } from 'src/util/baseJsonUtil';
+import { getOptionalCddaItemRef } from 'src/util/jsonUtil';
+import { commonUpdateName } from 'src/util/updateNameUtil';
 import { h, VNode } from 'vue';
-import FuelFieldSet from 'src/components/loaderView/card/material/FuelFieldSet.vue';
 import { FuelExplosion } from './FuelExplosionLoader';
-import { AsyncId } from 'src/type/common/AsyncId';
-import { getOptionalAsyncId } from 'src/util/jsonUtil';
-import { CddaType } from 'src/constant/cddaType';
-import { commonUpdateName } from 'src/util/asyncUpdateName';
 
 export class Fuel extends SuperLoader<FuelnInterface> {
-  async doLoad(data: FuelnInterface, jsonItem: JsonItem, jsonObject: object): Promise<void> {
-    await this.parseJson(data, jsonObject as Record<string, unknown>, jsonItem);
+  doToView(result: VNode[]): void {
+    if (this.isLoad && this.jsonItem) {
+      result.push(h(FuelFieldSet, { cddaData: this }));
+    }
   }
 
-  toView(): VNode[] {
-    const result = new Array<VNode>();
-
-    if (this.isLoad && this.jsonItem) {
-      h(FuelFieldSet, { cddaData: this });
-    }
-
-    return result;
+  doLoad(data: FuelnInterface, jsonItem: JsonItem, jsonObject: object): void {
+    this.parseJson(data, jsonObject as Record<string, unknown>, jsonItem);
   }
 
   validateValue(jsonItem: JsonItem, jsonObject?: object): boolean {
     return jsonObject !== undefined;
   }
 
-  private async parseJson(data: FuelnInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
-    const asyncPromises = new Array<Promise<unknown>>();
+  private parseJson(data: FuelnInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
     data.energy = getNumber(jsonObject, 'energy', 0);
     if (jsonObject.hasOwnProperty('explosion_data')) {
       data.explosionData = new FuelExplosion();
-      asyncPromises.push(data.explosionData.load(jsonItem, jsonObject.explosion_data as object));
+      data.explosionData.load(jsonItem, jsonObject.explosion_data as object);
     }
-    asyncPromises.push(
-      (async () =>
-        (data.pumpTerrain = await getOptionalAsyncId(jsonObject, 'pump_terrain', CddaType.terrain, commonUpdateName)))()
-    );
+    data.pumpTerrain = getOptionalCddaItemRef(jsonObject, 'pump_terrain', CddaType.terrain, commonUpdateName);
     data.isPerpetualFuel = getBoolean(jsonObject, 'perpetual', false);
-    await Promise.allSettled(asyncPromises);
   }
 }
 
 interface FuelnInterface {
   energy: number;
   explosionData?: FuelExplosion;
-  pumpTerrain?: AsyncId;
+  pumpTerrain?: CddaItemRef;
   isPerpetualFuel: boolean;
 }

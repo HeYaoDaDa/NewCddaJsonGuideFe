@@ -1,9 +1,9 @@
 import { cloneDeepWith } from 'lodash';
-import { AsyncId } from 'src/type/common/AsyncId';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 
 export function cloneObject<T>(value: T): T {
   return cloneDeepWith(value, (value) => {
-    if (value instanceof AsyncId) {
+    if (value instanceof CddaItemRef) {
       return value;
     }
   }) as T;

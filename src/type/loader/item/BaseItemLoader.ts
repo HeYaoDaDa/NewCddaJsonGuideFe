@@ -5,15 +5,22 @@ import BaseItemCard from 'src/components/loaderView/card/item/BaseItemCard.vue';
 import ItemMeleeCard from 'src/components/loaderView/card/item/ItemMeleeCard.vue';
 import { CddaType } from 'src/constant/cddaType';
 import { Flag } from 'src/constant/FlagsContant';
-import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
 import { ToHit } from 'src/type/loader/item/ToHitLoader';
-import { commonUpdateName, updateNameAndDes } from 'src/util/asyncUpdateName';
 import { getArray, getNumber, getOptionalObject, getOptionalUnknown, getString } from 'src/util/baseJsonUtil';
 import { arrayIsNotEmpty } from 'src/util/commonUtil';
 import { isItem } from 'src/util/dataUtil';
-import { getLength, getOptionalAsyncId, getTranslationString, getVolume, getWeight } from 'src/util/jsonUtil';
+import {
+  getCddaItemRefs,
+  getLength,
+  getOptionalCddaItemRef,
+  getTranslationString,
+  getVolume,
+  getWeight,
+} from 'src/util/jsonUtil';
+import { commonUpdateName, updateNameAndDes } from 'src/util/updateNameUtil';
 import { h, VNode } from 'vue';
 import { Armor } from './armor/ArmorLoader';
 import {
@@ -24,13 +31,7 @@ import {
 } from './BaseItemService';
 import { PocketData } from './PocketDataLoader';
 export class BaseItem extends SuperLoader<BaseItemInterface> {
-  async doLoad(data: BaseItemInterface, jsonItem: JsonItem): Promise<void> {
-    await this.parseJson(data, jsonItem.content as Record<string, unknown>, jsonItem);
-  }
-
-  toView(): VNode[] {
-    const result = new Array<VNode>();
-    const data = this.data;
+  doToView(result: VNode[], data: BaseItemInterface): void {
     result.push(h(BaseItemCard, { cddaData: this }));
     result.push(h(ItemMeleeCard, { cddaData: this }));
     if (arrayIsNotEmpty(data.pockets)) {
@@ -47,8 +48,10 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
     if (data.armor) {
       result.push(...data.armor.toView());
     }
+  }
 
-    return result;
+  doLoad(data: BaseItemInterface, jsonItem: JsonItem): void {
+    this.parseJson(data, jsonItem.content as Record<string, unknown>, jsonItem);
   }
 
   validateValue(jsonItem: JsonItem): boolean {
@@ -63,7 +66,7 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
     return this.hasFlag(Flag.SPEAR) || this.hasFlag(Flag.STAB);
   }
 
-  private async parseJson(data: BaseItemInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
+  private parseJson(data: BaseItemInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
     data.name = getTranslationString(jsonObject, 'name');
     data.description = getTranslationString(jsonObject, 'description');
     data.symbol = getString(jsonObject, 'symbol');
@@ -76,54 +79,29 @@ export class BaseItem extends SuperLoader<BaseItemInterface> {
     data.cut = getNumber(jsonObject, 'cutting');
     data.toHit = new ToHit();
 
-    const asyncPromises = new Array<Promise<unknown>>();
-    asyncPromises.push(
-      (async () =>
-        (data.category =
-          (await getOptionalAsyncId(jsonObject, 'category', CddaType.itemCategory, commonUpdateName)) ??
-          (await calcCategory())))(),
-      (async () =>
-        (data.flags = await Promise.all(
-          getArray(jsonObject, 'flags', []).map(
-            async (flag) => await AsyncId.new(<string>flag, CddaType.flag, commonUpdateName)
-          )
-        )))(),
-      (async () =>
-        (data.weaponCategory = await Promise.all(
-          getArray(jsonObject, 'weapon_category').map(
-            async (value) => await AsyncId.new(<string>value, CddaType.weaponCategory, commonUpdateName)
-          )
-        )))(),
-      (async () =>
-        (data.techniques = await Promise.all(
-          getArray(jsonObject, 'techniques').map(
-            async (value) => await AsyncId.new(<string>value, CddaType.technique, updateNameAndDes)
-          )
-        )))(),
-      (async () =>
-        (data.pockets = await Promise.all(
-          getArray(jsonObject, 'pocket_data').map(async (pocketDataObj) => {
-            const pocketData = new PocketData();
-            await pocketData.load(jsonItem, pocketDataObj as object);
-            return pocketData;
-          })
-        )))(),
-      (async () => {
-        const armor = new Armor();
-        const armorData = getOptionalObject(jsonObject, 'armor_data');
-        if (jsonItem.type === CddaType.armor || jsonItem.type === CddaType.toolArmor) {
-          await armor.load(jsonItem, jsonItem.content);
-          data.armor = armor;
-        } else if (armorData) {
-          await armor.load(jsonItem, armorData);
-          data.armor = armor;
-        }
-      })(),
-      assginMaterialsAndMaterialPortionsTotal(data, jsonObject),
-      data.toHit.load(jsonItem, (getOptionalUnknown(jsonObject, 'to_hit') as object) ?? {})
-    );
-    await Promise.allSettled(asyncPromises);
-    await data.armor?.backLoad(jsonItem, this);
+    data.category =
+      getOptionalCddaItemRef(jsonObject, 'category', CddaType.itemCategory, commonUpdateName) ?? calcCategory();
+
+    data.flags = getCddaItemRefs(jsonObject, 'flags', CddaType.flag, commonUpdateName);
+    data.weaponCategory = getCddaItemRefs(jsonObject, 'weapon_category', CddaType.weaponCategory, commonUpdateName);
+    data.techniques = getCddaItemRefs(jsonObject, 'techniques', CddaType.technique, updateNameAndDes);
+    data.pockets = getArray(jsonObject, 'pocket_data').map((pocketDataObj) => {
+      const pocketData = new PocketData();
+      pocketData.load(jsonItem, pocketDataObj as object);
+      return pocketData;
+    });
+    const armor = new Armor();
+    const armorData = getOptionalObject(jsonObject, 'armor_data');
+    if (jsonItem.type === CddaType.armor || jsonItem.type === CddaType.toolArmor) {
+      armor.load(jsonItem, jsonItem.content);
+      data.armor = armor;
+    } else if (armorData) {
+      armor.load(jsonItem, armorData);
+      data.armor = armor;
+    }
+    assginMaterialsAndMaterialPortionsTotal(data, jsonObject);
+    data.toHit.load(jsonItem, (getOptionalUnknown(jsonObject, 'to_hit') as object) ?? {});
+    data.armor?.backLoad(jsonItem, this);
   }
 }
 
@@ -133,24 +111,24 @@ export interface BaseItemInterface {
   symbol: string;
   color: string;
 
-  materials: [AsyncId, number][];
+  materials: [CddaItemRef, number][];
   materialPortionsTotal: number;
 
   weight: number;
   volume: number;
   longestSide: number;
 
-  category: AsyncId;
+  category: CddaItemRef;
 
-  flags: AsyncId[];
+  flags: CddaItemRef[];
 
   //melee
   bash: number;
   cut: number;
   toHit: ToHit;
   baseMovesPerAttack: number;
-  weaponCategory: AsyncId[];
-  techniques: AsyncId[];
+  weaponCategory: CddaItemRef[];
+  techniques: CddaItemRef[];
 
   pockets: PocketData[];
   armor?: Armor;

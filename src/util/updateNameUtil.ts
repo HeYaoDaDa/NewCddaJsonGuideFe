@@ -1,9 +1,9 @@
-import { AsyncId } from 'src/type/common/AsyncId';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 import { arrayIsEmpty } from './commonUtil';
 import { getTranslationString } from './jsonUtil';
 
-export async function commonUpdateName(asyncId: AsyncId) {
-  const cddaItems = await asyncId.getCddaItems();
+export function commonUpdateName(asyncId: CddaItemRef) {
+  const cddaItems = asyncId.getCddaItems();
   if (arrayIsEmpty(cddaItems)) return;
   const json = cddaItems[0].jsonItem.content;
   if ('name' in json) {
@@ -11,8 +11,8 @@ export async function commonUpdateName(asyncId: AsyncId) {
   }
 }
 
-export async function updateNameAndDes(asyncId: AsyncId) {
-  const cddaItems = await asyncId.getCddaItems();
+export function updateNameAndDes(asyncId: CddaItemRef) {
+  const cddaItems = asyncId.getCddaItems();
   if (arrayIsEmpty(cddaItems)) return;
   const json = cddaItems[0].jsonItem.content;
   if ('name' in json && 'description' in json) {

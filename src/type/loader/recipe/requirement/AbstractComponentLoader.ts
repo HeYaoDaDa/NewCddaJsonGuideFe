@@ -1,10 +1,10 @@
 import MyText from 'src/components/cddaItemLoader/MyText/MyText.vue';
 import MyTextAsyncId from 'src/components/cddaItemLoader/MyText/MyTextAsyncId.vue';
 import { CddaType } from 'src/constant/cddaType';
-import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
-import { commonUpdateName } from 'src/util/asyncUpdateName';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 import { toArray } from 'src/util/commonUtil';
+import { commonUpdateName } from 'src/util/updateNameUtil';
 import { h, VNode } from 'vue';
 import { SuperLoader } from '../../baseLoader/SuperLoader';
 
@@ -13,19 +13,16 @@ export abstract class AbstractComponent extends SuperLoader<AbstractComponentInt
     await this.parseJson(data, jsonObject as [string, number, string | undefined]);
   }
 
-  toView() {
-    const vNodes = new Array<VNode>();
-    const data = this.data;
-
+  doToView(result: VNode[], data: AbstractComponentInterface): void {
     if (data.requirement) {
-      vNodes.push(
+      result.push(
         h(MyText, {
           content: '<requirement>',
         })
       );
     }
 
-    vNodes.push(
+    result.push(
       h(MyTextAsyncId, {
         content: toArray(data.name),
       }),
@@ -34,13 +31,12 @@ export abstract class AbstractComponent extends SuperLoader<AbstractComponentInt
       })
     );
     if (data.noRecoverable) {
-      vNodes.push(
+      result.push(
         h(MyText, {
           content: `(${'no recover'})`,
         })
       );
     }
-    return vNodes;
   }
 
   validateValue(jsonItem: JsonItem, jsonObject?: object): boolean {
@@ -57,7 +53,7 @@ export abstract class AbstractComponent extends SuperLoader<AbstractComponentInt
       data.requirement = false;
       data.noRecoverable = false;
     }
-    data.name = await AsyncId.new(
+    data.name = await CddaItemRef.new(
       jsonObject[0],
       data.requirement ? CddaType.requirement : CddaType.item,
       data.requirement ? undefined : commonUpdateName
@@ -65,8 +61,8 @@ export abstract class AbstractComponent extends SuperLoader<AbstractComponentInt
   }
 }
 
-interface AbstractComponentInterface {
-  name: AsyncId;
+export interface AbstractComponentInterface {
+  name: CddaItemRef;
   count: number;
   noRecoverable: boolean;
   requirement: boolean;

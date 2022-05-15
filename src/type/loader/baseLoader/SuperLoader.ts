@@ -1,5 +1,5 @@
-import { reactive, VNode } from 'vue';
 import { JsonItem, Version } from 'src/type/common/baseType';
+import { reactive, VNode } from 'vue';
 
 export abstract class SuperLoader<T extends object> {
   data: T = reactive({}) as T;
@@ -7,7 +7,7 @@ export abstract class SuperLoader<T extends object> {
   jsonItem?: JsonItem;
   jsonObject?: object;
 
-  async load(jsonItem: JsonItem, jsonObject?: object) {
+  load(jsonItem: JsonItem, jsonObject?: object) {
     if (this.isLoad || !this.validateValue(jsonItem, jsonObject)) return;
     console.debug(
       '<%s> start load (%s)(%s)(%s)\n(%o)',
@@ -20,14 +20,32 @@ export abstract class SuperLoader<T extends object> {
     this.isLoad = true;
     this.jsonItem = jsonItem;
     this.jsonObject = jsonObject;
-    await this.doLoad(this.data, jsonItem, jsonObject);
+    this.doLoad(this.data, jsonItem, jsonObject);
   }
 
-  abstract doLoad(data: T, jsonItem: JsonItem, jsonObject?: object): Promise<void>;
+  abstract doLoad(data: T, jsonItem: JsonItem, jsonObject?: object): void;
 
   toView(): VNode[] {
-    return [];
+    const result: Array<VNode> = reactive([]);
+    const data = this.data;
+
+    if (!this.isLoad) {
+      console.debug(
+        '<%s> call toView fail, because no load (%s)(%s)(%s)\n(%o)',
+        this.constructor.name,
+        this.jsonItem?.type,
+        this.jsonItem?.jsonId,
+        this.jsonItem?._id,
+        this.jsonObject
+      );
+      return result;
+    }
+    this.doToView(result, data);
+
+    return result;
   }
+
+  abstract doToView(result: VNode[], data: T): void;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   validateValue(jsonItem: JsonItem, jsonObject?: object): boolean {

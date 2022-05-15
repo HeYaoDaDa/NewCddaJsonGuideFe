@@ -7,14 +7,7 @@ import { h, VNode } from 'vue';
 import { Shrapnel } from './ShrapnelLoader';
 
 export class Explosion extends SuperLoader<ExplosionlInterface> {
-  async doLoad(data: ExplosionlInterface, jsonItem: JsonItem, jsonObject: object): Promise<void> {
-    await this.parseJson(data, jsonObject as Record<string, unknown>, jsonItem);
-  }
-
-  toView(): VNode[] {
-    const result = new Array<VNode>();
-    const data = this.data;
-
+  doToView(result: VNode[], data: ExplosionlInterface): void {
     result.push(
       h(MyField, { label: 'power' }, () => h(MyText, { content: data.power })),
       h(MyField, { label: 'distanceFactor' }, () => h(MyText, { content: data.distanceFactor })),
@@ -25,15 +18,17 @@ export class Explosion extends SuperLoader<ExplosionlInterface> {
     if (data.shrapnel) {
       result.push(h(MyField, { label: 'shrapnel', dl: true }, () => data.shrapnel?.toView()));
     }
+  }
 
-    return result;
+  doLoad(data: ExplosionlInterface, jsonItem: JsonItem, jsonObject: object): void {
+    this.parseJson(data, jsonObject as Record<string, unknown>, jsonItem);
   }
 
   validateValue(jsonItem: JsonItem, jsonObject?: object): boolean {
     return jsonObject !== undefined;
   }
 
-  private async parseJson(data: ExplosionlInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
+  private parseJson(data: ExplosionlInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
     data.power = getNumber(jsonObject, 'power');
     data.distanceFactor = getNumber(jsonObject, 'distance_factor', 0.75);
     data.maxNoise = getNumber(jsonObject, 'max_noise ', 90000000);
@@ -42,10 +37,10 @@ export class Explosion extends SuperLoader<ExplosionlInterface> {
       const temp = jsonObject.shrapnel;
       if (typeof temp === 'number') {
         data.shrapnel = new Shrapnel();
-        await data.shrapnel.load(jsonItem, { casing_mass: temp });
+        data.shrapnel.load(jsonItem, { casing_mass: temp });
       } else {
         data.shrapnel = new Shrapnel();
-        await data.shrapnel.load(jsonItem, temp as object);
+        data.shrapnel.load(jsonItem, temp as object);
       }
     }
   }

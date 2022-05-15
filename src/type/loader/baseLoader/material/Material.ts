@@ -1,31 +1,27 @@
 import MaterialCard from 'src/components/loaderView/card/material/MaterialCard.vue';
 import { BreathabilityRating } from 'src/constant/appConstant';
 import { CddaType } from 'src/constant/cddaType';
-import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 import { Translation } from 'src/type/common/Translation';
 import { SuperLoader } from 'src/type/loader/baseLoader/SuperLoader';
-import { commonUpdateName } from 'src/util/asyncUpdateName';
 import { getArray, getBoolean, getNumber, getOptionalNumber, getString } from 'src/util/baseJsonUtil';
 import { arrayIsEmpty } from 'src/util/commonUtil';
-import { getOptionalAsyncId, getTranslationString } from 'src/util/jsonUtil';
+import { getOptionalCddaItemRef, getTranslationString } from 'src/util/jsonUtil';
+import { commonUpdateName } from 'src/util/updateNameUtil';
 import { h, VNode } from 'vue';
 import { Fuel } from './FuelLoader';
 import { MaterialBurn } from './MaterialBurn';
 
 export class Material extends SuperLoader<MaterialInterface> {
-  async doLoad(data: MaterialInterface, jsonItem: JsonItem): Promise<void> {
-    await this.parseJson(data, jsonItem.content as Record<string, unknown>, jsonItem);
-  }
-
-  toView(): VNode[] {
-    const result = new Array<VNode>();
-
+  doToView(result: VNode[]): void {
     if (this.isLoad && this.jsonItem) {
       result.push(h(MaterialCard, { cddaData: this }));
     }
+  }
 
-    return result;
+  doLoad(data: MaterialInterface, jsonItem: JsonItem): void {
+    this.parseJson(data, jsonItem.content as Record<string, unknown>, jsonItem);
   }
 
   validateValue(jsonItem: JsonItem): boolean {
@@ -46,9 +42,7 @@ export class Material extends SuperLoader<MaterialInterface> {
     return 0;
   }
 
-  private async parseJson(data: MaterialInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
-    const asyncPromises = new Array<Promise<unknown>>();
-
+  private parseJson(data: MaterialInterface, jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
     data.name = getTranslationString(jsonObject, 'name');
 
     data.bashResist = getNumber(jsonObject, 'bash_resist');
@@ -72,69 +66,47 @@ export class Material extends SuperLoader<MaterialInterface> {
       getString(jsonObject, 'breathability', BreathabilityRating.IMPERMEABLE.toString()),
       'breathabilityRating'
     );
-    asyncPromises.push(
-      (async () =>
-        (data.salvagedInto = await getOptionalAsyncId(jsonObject, 'salvaged_into', CddaType.item, commonUpdateName)))()
-    );
-    asyncPromises.push(
-      (async () =>
-        (data.repairedWith = await getOptionalAsyncId(jsonObject, 'repaired_with', CddaType.item, commonUpdateName)))()
-    );
+    data.salvagedInto = getOptionalCddaItemRef(jsonObject, 'salvaged_into', CddaType.item, commonUpdateName);
+    data.repairedWith = getOptionalCddaItemRef(jsonObject, 'repaired_with', CddaType.item, commonUpdateName);
     data.edible = getBoolean(jsonObject, 'edible');
     data.rotting = getBoolean(jsonObject, 'rotting');
     data.soft = getBoolean(jsonObject, 'soft');
     data.reinforces = getBoolean(jsonObject, 'reinforces');
-    asyncPromises.push(
-      (async () =>
-        (data.vitamins = await Promise.all(
-          getArray(jsonObject, 'vitamins').map(async (vitaminTulpe) => {
-            const temp = vitaminTulpe as [string, number];
-            const vitaminName = await AsyncId.new(temp[0], CddaType.vitamin, commonUpdateName);
-            return [vitaminName, temp[1]];
-          })
-        )))()
-    );
-    asyncPromises.push(
-      (async () => {
-        data.burnData = await Promise.all(
-          getArray(jsonObject, 'burn_data').map(async (burn_data) => {
-            const materialBurn = new MaterialBurn();
-            await materialBurn.load(jsonItem, burn_data as object);
-            return materialBurn;
-          })
-        );
-        if (arrayIsEmpty(data.burnData) && data.fireResist <= 0) {
-          const materialBurn = new MaterialBurn();
-          await materialBurn.load(jsonItem, { burn: 1 });
-          data.burnData.push(materialBurn);
-        }
-      })()
-    );
+    data.vitamins = getArray(jsonObject, 'vitamins').map((vitaminTulpe) => {
+      const temp = vitaminTulpe as [string, number];
+      const vitaminName = CddaItemRef.new(temp[0], CddaType.vitamin, commonUpdateName);
+      return [vitaminName, temp[1]];
+    });
+
+    data.burnData = getArray(jsonObject, 'burn_data').map((burn_data) => {
+      const materialBurn = new MaterialBurn();
+      materialBurn.load(jsonItem, burn_data as object);
+      return materialBurn;
+    });
+    if (arrayIsEmpty(data.burnData) && data.fireResist <= 0) {
+      const materialBurn = new MaterialBurn();
+      materialBurn.load(jsonItem, { burn: 1 });
+      data.burnData.push(materialBurn);
+    }
+
     if (jsonObject.hasOwnProperty('fuel_data')) {
       const fuel = new Fuel();
       fuel.load(jsonItem, <object>jsonObject.fuel_data);
       data.fuelData = fuel;
     }
-    asyncPromises.push(
-      (async () =>
-        (data.burnProducts = await Promise.all(
-          getArray(jsonObject, 'burn_products').map(async (burnProduct) => {
-            const temp = burnProduct as [string, number];
-            const burnProductName = await AsyncId.new(temp[0], CddaType.item, commonUpdateName);
-            return [burnProductName, temp[1]];
-          })
-        )))()
-    );
-
-    await Promise.allSettled(asyncPromises);
+    data.burnProducts = getArray(jsonObject, 'burn_products').map((burnProduct) => {
+      const temp = burnProduct as [string, number];
+      const burnProductName = CddaItemRef.new(temp[0], CddaType.item, commonUpdateName);
+      return [burnProductName, temp[1]];
+    });
   }
 }
 
 interface MaterialInterface {
   name: string;
 
-  salvagedInto?: AsyncId;
-  repairedWith?: AsyncId;
+  salvagedInto?: CddaItemRef;
+  repairedWith?: CddaItemRef;
 
   bashResist: number;
   cutResist: number;
@@ -159,8 +131,8 @@ interface MaterialInterface {
   reinforces: boolean;
 
   sheetThickness: number;
-  vitamins: [AsyncId, number][];
+  vitamins: [CddaItemRef, number][];
   fuelData?: Fuel;
   burnData: MaterialBurn[];
-  burnProducts: [AsyncId, number][];
+  burnProducts: [CddaItemRef, number][];
 }

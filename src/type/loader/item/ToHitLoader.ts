@@ -5,22 +5,19 @@ import { getString } from 'src/util/baseJsonUtil';
 import { h, VNode } from 'vue';
 import { SuperLoader } from '../baseLoader/SuperLoader';
 export class ToHit extends SuperLoader<ToHitInterface> {
-  async doLoad(data: ToHitInterface, jsonItem: JsonItem, jsonObject: object): Promise<void> {
-    await this.parseJson(data, jsonObject);
+  doToView(result: VNode[], data: ToHitInterface): void {
+    result.push(h(MyField, { label: 'toHit' }, () => h(MyText, { content: data.numberToHit })));
   }
 
-  toView(): VNode[] {
-    const result = new Array<VNode>();
-    const data = this.data;
-    result.push(h(MyField, { label: 'toHit' }, () => h(MyText, { content: data.numberToHit })));
-    return result;
+  doLoad(data: ToHitInterface, jsonItem: JsonItem, jsonObject: object): void {
+    this.parseJson(data, jsonObject);
   }
 
   validateValue(jsonItem: JsonItem, jsonObject?: object): boolean {
     return jsonObject !== undefined;
   }
 
-  private async parseJson(data: ToHitInterface, jsonObject: object) {
+  private parseJson(data: ToHitInterface, jsonObject: object) {
     if (typeof jsonObject === 'number') {
       data.numberToHit = jsonObject;
       jsonObject = {};

@@ -11,10 +11,10 @@ export class CddaItem {
     this.jsonItem = jsonItem ?? ({} as JsonItem);
   }
 
-  async getData(loader?: SuperLoader<object>) {
+  getData(loader?: SuperLoader<object>) {
     const myLoader = this.data ?? loader ?? findLoader(this);
     if (!myLoader.isLoad) {
-      await myLoader.load(this.jsonItem);
+      myLoader.load(this.jsonItem);
     }
     if (!this.data) {
       cddaData.addLoaderByJsonItem(this.jsonItem, myLoader);

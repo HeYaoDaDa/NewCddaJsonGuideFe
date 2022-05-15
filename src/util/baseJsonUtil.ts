@@ -78,7 +78,7 @@ export function getOptionalBoolean(jsonObject: Record<string, unknown>, key: str
     if (typeof result === 'boolean') {
       return result;
     } else {
-      console.warn('getOptionalBoolean is no string jsonObject: %o, key: %s, result: %s', jsonObject, key, result);
+      console.warn('getOptionalBoolean is no boolean jsonObject: %o, key: %s, result: %s', jsonObject, key, result);
       return false;
     }
   } else {

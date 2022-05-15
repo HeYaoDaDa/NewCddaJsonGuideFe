@@ -5,7 +5,7 @@ import { reactive } from 'vue';
 import { RouteLocationRaw } from 'vue-router';
 import { CddaItem } from './CddaItem';
 
-export class AsyncId {
+export class CddaItemRef {
   value: { id: string; name: string };
   type: string;
   route: RouteLocationRaw;
@@ -22,8 +22,8 @@ export class AsyncId {
     };
   }
 
-  static async new(id: string, type: string, asyncUpdateName?: (asyncId: AsyncId) => Promise<void>) {
-    const self = new AsyncId();
+  static new(id: string, type: string, updateNameFunc?: (cddaItemRef: CddaItemRef) => void) {
+    const self = new CddaItemRef();
     self.value.id = id;
     self.value.name = id;
     self.type = type;
@@ -34,8 +34,8 @@ export class AsyncId {
         jsonId: id,
       },
     };
-    if (asyncUpdateName) {
-      await asyncUpdateName(self);
+    if (updateNameFunc) {
+      updateNameFunc(self);
     }
     return self;
   }
@@ -44,17 +44,17 @@ export class AsyncId {
     return stringIsNotEmpty(this.value.name) ? this.value.name : this.value.id;
   }
 
-  async getCddaItems(): Promise<CddaItem[]> {
-    return await getCddaItemByTypeAndId(this.type, this.value.id);
+  getCddaItems(): CddaItem[] {
+    return getCddaItemByTypeAndId(this.type, this.value.id);
   }
 }
 
-export async function generateAsyncIds(
+export function generateCddaItemRefs(
   ids: string[],
   type: string,
-  asyncUpdateName?: (asyncId: AsyncId) => Promise<void>
-): Promise<AsyncId[]> {
-  const result: AsyncId[] = reactive([]);
-  await Promise.all(ids.map(async (id) => result.push(await AsyncId.new(id, type, asyncUpdateName))));
+  updateNameFunc?: (asyncId: CddaItemRef) => void
+): CddaItemRef[] {
+  const result: CddaItemRef[] = reactive([]);
+  ids.map((id) => result.push(CddaItemRef.new(id, type, updateNameFunc)));
   return result;
 }

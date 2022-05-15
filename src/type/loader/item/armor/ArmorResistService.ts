@@ -1,4 +1,4 @@
-import { AsyncId } from 'src/type/common/AsyncId';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 import { cloneObject } from 'src/util/cloneObject';
 import { arrayIsNotEmpty } from 'src/util/commonUtil';
 import { BodyPart } from '../../baseLoader/bodyPart/BodyPartLoader';
@@ -10,8 +10,8 @@ import { ArmorPortion } from './ArmorPortionLoader';
 export interface ArmorResistInterface {
   coverage: number;
   probability: number;
-  formatCovers: [AsyncId, AsyncId[]][];
-  coversSubBodyPart: AsyncId[];
+  formatCovers: [CddaItemRef, CddaItemRef[]][];
+  coversSubBodyPart: CddaItemRef[];
 
   bashResist: number;
   cutResist: number;
@@ -26,64 +26,54 @@ export interface ArmorResistInterface {
   envFilterResist: number;
 }
 
-export async function computeArmorResists(subArmorPortions: ArmorPortion[], env: number) {
+export function computeArmorResists(subArmorPortions: ArmorPortion[], env: number) {
   const armorResists: ArmorResistInterface[][] = [];
-  await Promise.all(
-    subArmorPortions.map(async (subArmorPortion) => {
-      const subArmorPortionResist = await getSubBodyPartArmorResist(subArmorPortion, env);
-      armorResists.push(mergalArmorResist(subArmorPortionResist));
-    })
-  );
-  await mergalArmorResistCover(armorResists);
+  subArmorPortions.forEach((subArmorPortion) => {
+    const subArmorPortionResist = getSubBodyPartArmorResist(subArmorPortion, env);
+    armorResists.push(mergalArmorResist(subArmorPortionResist));
+  });
+  mergalArmorResistCover(armorResists);
   return armorResists;
 }
 
-async function mergalArmorResistCover(armorResists: ArmorResistInterface[][]) {
-  await Promise.all(
-    armorResists.map(async (resists) => {
-      await Promise.all(
-        resists.map(async (resist) => {
-          resist.formatCovers = [];
-          const allResults = await Promise.all(
-            resist.coversSubBodyPart.map(async (subBodyPartName) => {
-              const cddaItems = await subBodyPartName.getCddaItems();
-              return <[AsyncId, SubBodyPart]>[subBodyPartName, await cddaItems[0].getData(new SubBodyPart())];
-            })
-          );
-          const subBodyParts = new Array<[AsyncId, SubBodyPart]>();
-          const parents = new Array<AsyncId>();
-          allResults.forEach((allResult) => {
-            subBodyParts.push(allResult);
-            if (!parents.find((parent) => parent.value.id === allResult[1].data.parent.value.id)) {
-              parents.push(allResult[1].data.parent);
-            }
-          });
+function mergalArmorResistCover(armorResists: ArmorResistInterface[][]) {
+  armorResists.forEach((resists) => {
+    resists.forEach((resist) => {
+      resist.formatCovers = [];
+      const allResults = resist.coversSubBodyPart.map((subBodyPartName) => {
+        const cddaItems = subBodyPartName.getCddaItems();
+        return <[CddaItemRef, SubBodyPart]>[subBodyPartName, cddaItems[0].getData(new SubBodyPart())];
+      });
+      const subBodyParts = new Array<[CddaItemRef, SubBodyPart]>();
+      const parents = new Array<CddaItemRef>();
+      allResults.forEach((allResult) => {
+        subBodyParts.push(allResult);
+        if (!parents.find((parent) => parent.value.id === allResult[1].data.parent.value.id)) {
+          parents.push(allResult[1].data.parent);
+        }
+      });
 
-          const allResults1 = await Promise.all(
-            parents.map(async (parent) => {
-              const cddaItems = await parent.getCddaItems();
-              return <[AsyncId, BodyPart]>[parent, await cddaItems[0].getData(new BodyPart())];
-            })
-          );
-          const bodyParts = new Array<[AsyncId, BodyPart]>();
-          allResults1.forEach((allResult) => {
-            bodyParts.push(allResult);
-          });
-          bodyParts.forEach((bodyPart) => {
-            const currentSubBodyParts = subBodyParts.filter(
-              (subBodyPart) => subBodyPart[1].data.parent.value.id === bodyPart[0].value.id
-            );
-            resist.formatCovers.push([
-              bodyPart[0],
-              currentSubBodyParts.length === bodyPart[1].data.subBodyParts.length
-                ? []
-                : currentSubBodyParts.map((curSubBodyPart) => curSubBodyPart[0]),
-            ]);
-          });
-        })
-      );
-    })
-  );
+      const allResults1 = parents.map((parent) => {
+        const cddaItems = parent.getCddaItems();
+        return <[CddaItemRef, BodyPart]>[parent, cddaItems[0].getData(new BodyPart())];
+      });
+      const bodyParts = new Array<[CddaItemRef, BodyPart]>();
+      allResults1.forEach((allResult) => {
+        bodyParts.push(allResult);
+      });
+      bodyParts.forEach((bodyPart) => {
+        const currentSubBodyParts = subBodyParts.filter(
+          (subBodyPart) => subBodyPart[1].data.parent.value.id === bodyPart[0].value.id
+        );
+        resist.formatCovers.push([
+          bodyPart[0],
+          currentSubBodyParts.length === bodyPart[1].data.subBodyParts.length
+            ? []
+            : currentSubBodyParts.map((curSubBodyPart) => curSubBodyPart[0]),
+        ]);
+      });
+    });
+  });
 }
 
 function mergalArmorResist(armorResists: ArmorResistInterface[]) {
@@ -127,20 +117,18 @@ function equalArmorResist(l: ArmorResistInterface, r: ArmorResistInterface): boo
   );
 }
 
-async function getSubBodyPartArmorResist(
+function getSubBodyPartArmorResist(
   armorPortion: ArmorPortion,
   avgEnvironmentalProtection: number
-): Promise<ArmorResistInterface[]> {
-  const armorMaterialObjects = await Promise.all(
-    armorPortion.data.armorMaterials.map(async (armorMaterial) => {
-      const cddaItems = await armorMaterial.data.id.getCddaItems();
-      if (arrayIsNotEmpty(cddaItems)) {
-        const material = (await cddaItems[0].getData(new Material())) as Material;
-        return <[Material, ArmorMaterial]>[material, armorMaterial];
-      }
-      return <[Material, ArmorMaterial]>[new Material(), armorMaterial];
-    })
-  );
+): ArmorResistInterface[] {
+  const armorMaterialObjects = armorPortion.data.armorMaterials.map((armorMaterial) => {
+    const cddaItems = armorMaterial.data.id.getCddaItems();
+    if (arrayIsNotEmpty(cddaItems)) {
+      const material = cddaItems[0].getData(new Material()) as Material;
+      return <[Material, ArmorMaterial]>[material, armorMaterial];
+    }
+    return <[Material, ArmorMaterial]>[new Material(), armorMaterial];
+  });
   let result = new Array<ArmorResistInterface>({
     coverage: armorPortion.data.coverage,
     probability: 100,

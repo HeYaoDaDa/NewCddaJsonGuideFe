@@ -1,10 +1,10 @@
 import { CddaType } from 'src/constant/cddaType';
 import { Flag } from 'src/constant/FlagsContant';
-import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
-import { commonUpdateName } from 'src/util/asyncUpdateName';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 import { cloneObject } from 'src/util/cloneObject';
 import { arrayIsEmpty, arrayIsNotEmpty } from 'src/util/commonUtil';
+import { commonUpdateName } from 'src/util/updateNameUtil';
 import { SubBodyPart } from '../../baseLoader/bodyPart/SubBodyPartLoader';
 import { Material } from '../../baseLoader/material/Material';
 import { BaseItem } from '../BaseItemLoader';
@@ -17,37 +17,33 @@ import { ArmorPortion } from './ArmorPortionLoader';
  * we need pass item's material infer it
  * @param item base item info
  */
-export async function inferSubArmorPortionsArmorMaterial(
+export function inferSubArmorPortionsArmorMaterial(
   jsonItem: JsonItem,
   subArmorPortions: ArmorPortion[],
   item: BaseItem
 ) {
-  await Promise.all(
-    subArmorPortions
-      .filter((subArmorPortion) => arrayIsEmpty(subArmorPortion.data.armorMaterials))
-      .map(async (subArmorPortion) => {
-        const skipScale: boolean = item.data.materialPortionsTotal === 0;
-        await Promise.all(
-          item.data.materials.map(async (itemMaterial) => {
-            const armorMaterial = new ArmorMaterial();
-            if (skipScale) {
-              await armorMaterial.load(jsonItem, {
-                type: itemMaterial[0].value.id,
-                thickness: item.data.materials.length * subArmorPortion.data.avgThickness,
-                ignore_sheet_thickness: true,
-              });
-            } else {
-              await armorMaterial.load(jsonItem, {
-                type: itemMaterial[0].value.id,
-                thickness: (itemMaterial[1] / item.data.materialPortionsTotal) * subArmorPortion.data.avgThickness,
-                ignore_sheet_thickness: true,
-              });
-            }
-            subArmorPortion.data.armorMaterials.push(armorMaterial);
-          })
-        );
-      })
-  );
+  subArmorPortions
+    .filter((subArmorPortion) => arrayIsEmpty(subArmorPortion.data.armorMaterials))
+    .forEach((subArmorPortion) => {
+      const skipScale: boolean = item.data.materialPortionsTotal === 0;
+      item.data.materials.forEach((itemMaterial) => {
+        const armorMaterial = new ArmorMaterial();
+        if (skipScale) {
+          armorMaterial.load(jsonItem, {
+            type: itemMaterial[0].value.id,
+            thickness: item.data.materials.length * subArmorPortion.data.avgThickness,
+            ignore_sheet_thickness: true,
+          });
+        } else {
+          armorMaterial.load(jsonItem, {
+            type: itemMaterial[0].value.id,
+            thickness: (itemMaterial[1] / item.data.materialPortionsTotal) * subArmorPortion.data.avgThickness,
+            ignore_sheet_thickness: true,
+          });
+        }
+        subArmorPortion.data.armorMaterials.push(armorMaterial);
+      });
+    });
 }
 
 /**
@@ -81,82 +77,63 @@ export function setSubArmorPotionsField(subArmorPortions: ArmorPortion[], item: 
   });
 }
 
-export async function setSubArmorPotionsrRigidComfortable(subArmorPortions: ArmorPortion[]) {
-  await Promise.all(
-    subArmorPortions.map((subArmorPortion) =>
-      Promise.all(
-        subArmorPortion.data.armorMaterials
-          .filter((armorMaterial) => armorMaterial.data.coverage > 40)
-          .map((armorMaterial) =>
-            armorMaterial.data.id.getCddaItems().then(async (cddaItems) => {
-              if (arrayIsNotEmpty(cddaItems)) {
-                const material = (await cddaItems[0].getData(new Material())) as Material;
-                if (material.data.soft) {
-                  subArmorPortion.data.isComfortable = true;
-                } else {
-                  subArmorPortion.data.isRigid = true;
-                }
-              }
-            })
-          )
-      )
-    )
+export function setSubArmorPotionsrRigidComfortable(subArmorPortions: ArmorPortion[]) {
+  subArmorPortions.forEach((subArmorPortion) =>
+    subArmorPortion.data.armorMaterials
+      .filter((armorMaterial) => armorMaterial.data.coverage > 40)
+      .forEach((armorMaterial) => {
+        const cddaItems = armorMaterial.data.id.getCddaItems();
+        if (arrayIsNotEmpty(cddaItems)) {
+          const material = cddaItems[0].getData(new Material()) as Material;
+          if (material.data.soft) {
+            subArmorPortion.data.isComfortable = true;
+          } else {
+            subArmorPortion.data.isRigid = true;
+          }
+        }
+      })
   );
 }
 
 /**
  * consolidate SubArmorPotions to ArmorPotions
  */
-export async function consolidateSubArmorPotions(armorPortions: ArmorPortion[], subArmorPortions: ArmorPortion[]) {
-  await Promise.all(
-    subArmorPortions
-      .filter((subArmorPortion) => arrayIsNotEmpty(subArmorPortion.data.coversBodyPart))
-      .map(async (subArmorPortion) => {
-        await Promise.all(
-          subArmorPortion.data.coversBodyPart.map(async (subCover) => {
-            let found = false;
+export function consolidateSubArmorPotions(armorPortions: ArmorPortion[], subArmorPortions: ArmorPortion[]) {
+  subArmorPortions
+    .filter((subArmorPortion) => arrayIsNotEmpty(subArmorPortion.data.coversBodyPart))
+    .forEach((subArmorPortion) => {
+      subArmorPortion.data.coversBodyPart.forEach((subCover) => {
+        let found = false;
+        armorPortions
+          .filter((armorPortion) =>
+            armorPortion.data.coversBodyPart.some((bodyPartId) => bodyPartId.value.id === subCover.value.id)
+          )
+          .forEach((armorPortion) => {
+            found = true;
+            addEncumber(armorPortion, subArmorPortion);
+            let subScale = subArmorPortion.maxCoverage(subCover.value.id);
+            let scale = armorPortion.maxCoverage(subCover.value.id);
+            subScale *= 0.01;
+            scale *= 0.01;
+            consolidatePortionBaseInfo(armorPortion, subArmorPortion, subScale, scale);
+            consolidateMaterial(subArmorPortion, armorPortion, subScale, scale);
+            consolidateLayerAndSubBodyPart(subArmorPortion, armorPortion);
+          });
+        if (!found) {
+          const newArmorPortion = getNewArmorPotrtion(subArmorPortion, subCover);
+          armorPortions.push(newArmorPortion);
+        }
+      });
+    });
 
-            await Promise.all(
-              armorPortions
-                .filter((armorPortion) =>
-                  armorPortion.data.coversBodyPart.some((bodyPartId) => bodyPartId.value.id === subCover.value.id)
-                )
-                .map(async (armorPortion) => {
-                  found = true;
-                  addEncumber(armorPortion, subArmorPortion);
-
-                  let [subScale, scale] = await Promise.all([
-                    subArmorPortion.maxCoverage(subCover.value.id),
-                    armorPortion.maxCoverage(subCover.value.id),
-                  ]);
-                  subScale *= 0.01;
-                  scale *= 0.01;
-
-                  consolidatePortionBaseInfo(armorPortion, subArmorPortion, subScale, scale);
-                  consolidateMaterial(subArmorPortion, armorPortion, subScale, scale);
-                  consolidateLayerAndSubBodyPart(subArmorPortion, armorPortion);
-                })
-            );
-
-            if (!found) {
-              const newArmorPortion = getNewArmorPotrtion(subArmorPortion, subCover);
-              armorPortions.push(newArmorPortion);
-            }
-          })
-        );
-      })
-  );
-
-  function getNewArmorPotrtion(subArmorPortion: ArmorPortion, subCover: AsyncId) {
+  function getNewArmorPotrtion(subArmorPortion: ArmorPortion, subCover: CddaItemRef) {
     const newArmorPortion = cloneObject(subArmorPortion);
     newArmorPortion.data.coversBodyPart = [subCover];
-    // ??? no clear coversSubBodyPart ???
-    void newArmorPortion.maxCoverage(subCover.value.id).then((maxCoverage) => {
-      const scale = maxCoverage * 0.01;
-      newArmorPortion.data.coverage *= scale;
-      newArmorPortion.data.coverageMelee *= scale;
-      newArmorPortion.data.coverageRanged *= scale;
-    });
+    const maxCoverage = newArmorPortion.maxCoverage(subCover.value.id);
+    const scale = maxCoverage * 0.01;
+    newArmorPortion.data.coverage *= scale;
+    newArmorPortion.data.coverageMelee *= scale;
+    newArmorPortion.data.coverageRanged *= scale;
     newArmorPortion.data.armorMaterials.forEach((newArmorMaterial) => {
       newArmorMaterial.data.coverage *= newArmorPortion.data.coverage / 100;
     });
@@ -264,35 +241,35 @@ export function scaleAmalgamizedPortion(armorPortions: ArmorPortion[]) {
 /**
  * set all Layer
  */
-export async function setAllLayer(
-  allLayers: AsyncId[],
+export function setAllLayer(
+  allLayers: CddaItemRef[],
   armorPortions: ArmorPortion[],
   subArmorPortions: ArmorPortion[],
   item: BaseItem
 ) {
   if (item.hasFlag(Flag.PERSONAL)) {
-    allLayers.push(await AsyncId.new(Flag.PERSONAL, CddaType.flag, commonUpdateName));
+    allLayers.push(CddaItemRef.new(Flag.PERSONAL, CddaType.flag, commonUpdateName));
   }
   if (item.hasFlag(Flag.SKINTIGHT)) {
-    allLayers.push(await AsyncId.new(Flag.SKINTIGHT, CddaType.flag, commonUpdateName));
+    allLayers.push(CddaItemRef.new(Flag.SKINTIGHT, CddaType.flag, commonUpdateName));
   }
   if (item.hasFlag(Flag.NORMAL)) {
-    allLayers.push(await AsyncId.new(Flag.NORMAL, CddaType.flag, commonUpdateName));
+    allLayers.push(CddaItemRef.new(Flag.NORMAL, CddaType.flag, commonUpdateName));
   }
   if (item.hasFlag(Flag.WAIST)) {
-    allLayers.push(await AsyncId.new(Flag.WAIST, CddaType.flag, commonUpdateName));
+    allLayers.push(CddaItemRef.new(Flag.WAIST, CddaType.flag, commonUpdateName));
   }
   if (item.hasFlag(Flag.OUTER)) {
-    allLayers.push(await AsyncId.new(Flag.OUTER, CddaType.flag, commonUpdateName));
+    allLayers.push(CddaItemRef.new(Flag.OUTER, CddaType.flag, commonUpdateName));
   }
   if (item.hasFlag(Flag.BELTED)) {
-    allLayers.push(await AsyncId.new(Flag.BELTED, CddaType.flag, commonUpdateName));
+    allLayers.push(CddaItemRef.new(Flag.BELTED, CddaType.flag, commonUpdateName));
   }
   if (item.hasFlag(Flag.AURA)) {
-    allLayers.push(await AsyncId.new(Flag.AURA, CddaType.flag, commonUpdateName));
+    allLayers.push(CddaItemRef.new(Flag.AURA, CddaType.flag, commonUpdateName));
   }
   if (arrayIsEmpty(allLayers)) {
-    allLayers = [await AsyncId.new(Flag.NORMAL, CddaType.flag, commonUpdateName)];
+    allLayers = [CddaItemRef.new(Flag.NORMAL, CddaType.flag, commonUpdateName)];
   }
 
   armorPortions.forEach(({ data: armorPortion }) => {
@@ -314,26 +291,22 @@ export async function setAllLayer(
   });
 }
 
-export async function setFeetRigid(subArmorPortions: ArmorPortion[]) {
-  await Promise.all(
-    subArmorPortions.map(async ({ data: subArmorPortion }) => {
-      const isNormal = subArmorPortion.layers.some((layer) => layer.value.id === Flag.NORMAL);
-      let isLeg = false;
-      await Promise.all(
-        subArmorPortion.coversSubBodyPart.map(async (coverSubBodyPart) => {
-          const cddaItems = await coverSubBodyPart.getCddaItems();
-          if (arrayIsNotEmpty(cddaItems)) {
-            const subBodyPart = (await cddaItems[0].getData(new SubBodyPart())) as SubBodyPart;
-            if (subBodyPart.data.parent.value.id === 'bp_leg_l' || subBodyPart.data.parent.value.id === 'bp_leg_r')
-              isLeg = true;
-          }
-        })
-      );
-      if (isNormal && isLeg) {
-        subArmorPortion.isRigid = true;
+export function setFeetRigid(subArmorPortions: ArmorPortion[]) {
+  subArmorPortions.map(({ data: subArmorPortion }) => {
+    const isNormal = subArmorPortion.layers.some((layer) => layer.value.id === Flag.NORMAL);
+    let isLeg = false;
+    subArmorPortion.coversSubBodyPart.map((coverSubBodyPart) => {
+      const cddaItems = coverSubBodyPart.getCddaItems();
+      if (arrayIsNotEmpty(cddaItems)) {
+        const subBodyPart = cddaItems[0].getData(new SubBodyPart()) as SubBodyPart;
+        if (subBodyPart.data.parent.value.id === 'bp_leg_l' || subBodyPart.data.parent.value.id === 'bp_leg_r')
+          isLeg = true;
       }
-    })
-  );
+    });
+    if (isNormal && isLeg) {
+      subArmorPortion.isRigid = true;
+    }
+  });
 }
 
 /**
@@ -363,36 +336,26 @@ export function setArmorRigidAndComfortable(armor: ArmorInterface) {
   armor.comfortable = allComfortable;
 }
 
-export async function setBreathability(armorPortions: ArmorPortion[]) {
+export function setBreathability(armorPortions: ArmorPortion[]) {
   const needUpdateArmorPortion = new Array<ArmorPortion>();
   armorPortions.forEach((armorPortion) => {
     if (!armorPortion.data.breathability || armorPortion.data.breathability < 0) {
       needUpdateArmorPortion.push(armorPortion);
     }
   });
-  await Promise.all(
-    needUpdateArmorPortion.map(async (armorPortion) => {
-      const result = await Promise.allSettled(
-        armorPortion.data.armorMaterials.map(async (armorMaterial) => {
-          const cddaItems = await armorMaterial.data.id.getCddaItems();
-          return [(await cddaItems[0].getData(new Material())) as Material, armorMaterial.data.coverage] as [
-            Material,
-            number
-          ];
-        })
-      );
-      const newResult = result
-        .filter((item) => item.status === 'fulfilled')
-        .map((item) => (item.status === 'fulfilled' ? item.value : <[Material, number]>{}));
-      const sordMaterial = newResult.sort((a, b) => a[0].breathability() - b[0].breathability());
-      let coverage_counted = 0;
-      let combined_breathability = 0;
-      for (const material of sordMaterial) {
-        combined_breathability += Math.max((material[1] - coverage_counted) * material[0].breathability(), 0);
-        coverage_counted = Math.max(material[1], coverage_counted);
-        if (coverage_counted == 100) break;
-      }
-      armorPortion.data.breathability = combined_breathability / 100 + 100 - coverage_counted;
-    })
-  );
+  needUpdateArmorPortion.forEach((armorPortion) => {
+    const result = armorPortion.data.armorMaterials.map((armorMaterial) => {
+      const cddaItems = armorMaterial.data.id.getCddaItems();
+      return [cddaItems[0].getData(new Material()) as Material, armorMaterial.data.coverage] as [Material, number];
+    });
+    const sordMaterial = result.sort((a, b) => a[0].breathability() - b[0].breathability());
+    let coverage_counted = 0;
+    let combined_breathability = 0;
+    for (const material of sordMaterial) {
+      combined_breathability += Math.max((material[1] - coverage_counted) * material[0].breathability(), 0);
+      coverage_counted = Math.max(material[1], coverage_counted);
+      if (coverage_counted == 100) break;
+    }
+    armorPortion.data.breathability = combined_breathability / 100 + 100 - coverage_counted;
+  });
 }

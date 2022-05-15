@@ -1,10 +1,10 @@
 import { CddaType } from 'src/constant/cddaType';
-import { AsyncId } from 'src/type/common/AsyncId';
 import { JsonItem } from 'src/type/common/baseType';
-import { commonUpdateName } from 'src/util/asyncUpdateName';
+import { CddaItemRef } from 'src/type/common/CddaItemRef';
 import { getArray, getOptionalArray, getOptionalUnknown } from 'src/util/baseJsonUtil';
 import { arrayIsNotEmpty } from 'src/util/commonUtil';
 import { getTime } from 'src/util/jsonUtil';
+import { commonUpdateName } from 'src/util/updateNameUtil';
 import { RecipeProficiency } from './RecipeProficiencyLoader';
 import { Requirement } from './requirement/RequirementLoader';
 
@@ -17,24 +17,20 @@ export function parseTime(jsonObject: Record<string, unknown>): number {
   }
 }
 
-export async function parseSkillRequire(jsonObject: Record<string, unknown>) {
-  let skillRequire: [AsyncId, number][];
+export function parseSkillRequire(jsonObject: Record<string, unknown>) {
+  let skillRequire: [CddaItemRef, number][];
   const temp = getArray(jsonObject, 'skills_required');
   if (arrayIsNotEmpty(temp)) {
     if (typeof temp[0] === 'object') {
-      skillRequire = await Promise.all(
-        temp.map(async (skill) => {
-          const temp = <[string, number | undefined]>skill;
-          return [await AsyncId.new(temp[0], CddaType.skill, commonUpdateName), temp[1] ?? 0];
-        })
-      );
+      skillRequire = temp.map((skill) => {
+        const temp = <[string, number | undefined]>skill;
+        return [CddaItemRef.new(temp[0], CddaType.skill, commonUpdateName), temp[1] ?? 0];
+      });
     } else {
-      skillRequire = await Promise.all(
-        [temp].map(async (skill) => {
-          const temp = <[string, number | undefined]>skill;
-          return [await AsyncId.new(temp[0], CddaType.skill, commonUpdateName), temp[1] ?? 0];
-        })
-      );
+      skillRequire = [temp].map((skill) => {
+        const temp = <[string, number | undefined]>skill;
+        return [CddaItemRef.new(temp[0], CddaType.skill, commonUpdateName), temp[1] ?? 0];
+      });
     }
   } else {
     skillRequire = [];
@@ -42,26 +38,26 @@ export async function parseSkillRequire(jsonObject: Record<string, unknown>) {
   return skillRequire;
 }
 
-export async function parseBookLearn(jsonObject: Record<string, unknown>) {
+export function parseBookLearn(jsonObject: Record<string, unknown>) {
   const bookLearnJson = getOptionalUnknown(jsonObject, 'book_learn') as
     | undefined
     | Map<string, BookLearnJson>
     | [string, number][];
-  const bookLearn: { book: AsyncId; level: number; name: string | undefined; hidden: boolean }[] = [];
+  const bookLearn: { book: CddaItemRef; level: number; name: string | undefined; hidden: boolean }[] = [];
   if (bookLearnJson !== undefined) {
     if (Array.isArray(bookLearnJson)) {
-      bookLearnJson.forEach(async (bookLearnTuple) =>
+      bookLearnJson.forEach((bookLearnTuple) =>
         bookLearn.push({
-          book: await AsyncId.new(bookLearnTuple[0], CddaType.item, commonUpdateName),
+          book: CddaItemRef.new(bookLearnTuple[0], CddaType.item, commonUpdateName),
           level: bookLearnTuple[1],
           name: undefined,
           hidden: false,
         })
       );
     } else {
-      bookLearnJson.forEach(async (bookLearnObject, bookId) =>
+      bookLearnJson.forEach((bookLearnObject, bookId) =>
         bookLearn.push({
-          book: await AsyncId.new(bookId, CddaType.item, commonUpdateName),
+          book: CddaItemRef.new(bookId, CddaType.item, commonUpdateName),
           level: bookLearnObject.skill_level,
           name: bookLearnObject.recipe_name,
           hidden: bookLearnObject.hidden ?? false,
@@ -88,9 +84,9 @@ export function parseBatch(jsonObject: Record<string, unknown>) {
 }
 
 // after skillUse and difficulty
-export async function parseAutoLearn(jsonObject: Record<string, unknown>, skillUse: AsyncId, difficulty: number) {
+export function parseAutoLearn(jsonObject: Record<string, unknown>, skillUse: CddaItemRef, difficulty: number) {
   const temp = getOptionalUnknown(jsonObject, 'autolearn');
-  let autolearnRequire: [AsyncId, number][] = [];
+  let autolearnRequire: [CddaItemRef, number][] = [];
   if (temp) {
     if (typeof temp === 'boolean') {
       if (temp) {
@@ -98,70 +94,60 @@ export async function parseAutoLearn(jsonObject: Record<string, unknown>, skillU
       }
     } else {
       const learnJsons = temp as [string, number][];
-      autolearnRequire = await Promise.all(
-        learnJsons.map(async (learnJson) => [await AsyncId.new(learnJson[0], CddaType.skill), learnJson[1]])
-      );
+      autolearnRequire = learnJsons.map((learnJson) => [CddaItemRef.new(learnJson[0], CddaType.skill), learnJson[1]]);
     }
   }
   return autolearnRequire;
 }
 
 // after skillUse
-export async function parseDecompLearn(jsonObject: Record<string, unknown>, skillUse: AsyncId) {
+export function parseDecompLearn(jsonObject: Record<string, unknown>, skillUse: CddaItemRef) {
   const temp = getOptionalUnknown(jsonObject, 'decomp_learn');
-  let decompLearn: [AsyncId, number][] = [];
+  let decompLearn: [CddaItemRef, number][] = [];
   if (temp) {
     if (typeof temp === 'number') {
       decompLearn.push([skillUse, temp]);
     } else {
       const learnJsons = temp as [string, number][];
-      decompLearn = await Promise.all(
-        learnJsons.map(async (learnJson) => [await AsyncId.new(learnJson[0], CddaType.skill), learnJson[1]])
-      );
+      decompLearn = learnJsons.map((learnJson) => [CddaItemRef.new(learnJson[0], CddaType.skill), learnJson[1]]);
     }
   }
   return decompLearn;
 }
 
-export async function parseProficiencies(jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
+export function parseProficiencies(jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
   const proficiencies = getOptionalArray(jsonObject, 'proficiencies') as object[] | undefined;
   let result: RecipeProficiency[] = [];
   if (proficiencies && arrayIsNotEmpty(proficiencies)) {
-    result = await Promise.all(
-      proficiencies.map(async (proficiency) => {
-        const result = new RecipeProficiency();
-        await result.load(jsonItem, proficiency);
-        return result;
-      })
-    );
+    result = proficiencies.map((proficiency) => {
+      const result = new RecipeProficiency();
+      result.load(jsonItem, proficiency);
+      return result;
+    });
   }
   return result;
 }
 
-export async function parseRequirement(jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
+export function parseRequirement(jsonObject: Record<string, unknown>, jsonItem: JsonItem) {
   const requirement = new Requirement();
-  await requirement.load(jsonItem, jsonObject);
+  requirement.load(jsonItem, jsonObject);
   return requirement;
 }
 
-export async function parseUsings(jsonObject: Record<string, unknown>) {
-  return await Promise.all(
-    getArray(jsonObject, 'using').map(async (usingObject) => {
-      if (typeof usingObject === 'string') {
-        return { requirment: await AsyncId.new(usingObject, CddaType.requirement), count: 1 };
-      } else {
-        const usingTuple = usingObject as [string, number];
-        return { requirment: await AsyncId.new(usingTuple[0], CddaType.requirement), count: usingTuple[1] };
-      }
-    })
-  );
+export function parseUsings(jsonObject: Record<string, unknown>) {
+  return getArray(jsonObject, 'using').map((usingObject) => {
+    if (typeof usingObject === 'string') {
+      return { requirment: CddaItemRef.new(usingObject, CddaType.requirement), count: 1 };
+    } else {
+      const usingTuple = usingObject as [string, number];
+      return { requirment: CddaItemRef.new(usingTuple[0], CddaType.requirement), count: usingTuple[1] };
+    }
+  });
 }
 
-export async function parseByproducts(jsonObject: Record<string, unknown>): Promise<[AsyncId, number][]> {
-  return await Promise.all(
-    getArray(jsonObject, 'byproducts').map(async (byproduct) => {
-      const temp = <[string, number | undefined]>byproduct;
-      return [await AsyncId.new(temp[0], CddaType.item, commonUpdateName), temp[1] ?? 1];
-    })
-  );
+export function parseByproducts(jsonObject: Record<string, unknown>): [CddaItemRef, number][] {
+  return getArray(jsonObject, 'byproducts').map((byproduct) => {
+    const temp = <[string, number | undefined]>byproduct;
+    return [CddaItemRef.new(temp[0], CddaType.item, commonUpdateName), temp[1] ?? 1];
+  });
 }
